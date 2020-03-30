@@ -1030,6 +1030,8 @@ function handleDownload(){
 <div style="right: 5px; top: 5px; position: absolute;">
 <h2>Tri-Bahtinov Mask Drawings Generator</h2>
 <p>This is rough webApps port of <a href="https://github.com/cytan299/tribahtinov" target="_blank">Tri-Bahtinov Mask generator</a>.<br><font size="-1">Programmed by Satoru Takagi.</font></p>
+<p>You may be interested in <a href="Tri-Bahtinov_symmetric4.html">a version with improved sensitivity</a>. 7/15/2018</p>
+
 Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
 <option value="" selected>F.L.:[mm], Diameters:[mm]</option>
 <option value="">F.L.:[mm], Diameters:[in]</option>
@@ -1073,12 +1075,22 @@ Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
     <br>
 	<a href="https://www.cloudynights.com/topic/178843-revolutionary-new-way-of-focusing-no-less/#entry2309839" target="_blank">Bartinov Factor</a>:
 	<select id="bartinovF" autocomplete="off">
+	 <option value="100" >100</option>
+	 <option value="110" >110</option>
+	 <option value="120" >120</option>
+	 <option value="130" >130</option>
+	 <option value="140" >140</option>
 	 <option value="150" selected >150</option>
 	 <option value="160" >160</option>
 	 <option value="170" >170</option>
 	 <option value="180" >180</option>
 	 <option value="190" >190</option>
 	 <option value="200" >200</option>
+	 <option value="210" >210</option>
+	 <option value="220" >220</option>
+	 <option value="230" >230</option>
+	 <option value="240" >240</option>
+	 <option value="250" >250</option>
     </select>
     
     <span id="inWt">inW:</span><input name="inW" id="inW" type="text" style="width:50px" value="5.99948" autocomplete="off" />
