@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+<title>Improve Sensitivity of Tri-Bahtinov Mask</title>
+</head>
+<body>
+<div align="right">ENGLISH/<a href="tbmReportJ.html">JAPANESE</a></div>
+<h1>Improve Sensitivity of Tri-Bahtinov Mask</h1>
+
+<h2>Motivation</h2>
+<p>At <a href="https://www.cloudynights.com/topic/620807-tri-bahtinov-mask/">this thread</a> of cloudy nights, an issue on sensitivity of tri-bahtinov mask has been raised. So, this is a study to improve it.</p>
+<div align="right">Satoru Takagi</div>
+
+<h2>Design</h2>
+<p><a href="../Tri-Bahtinov_symmetric.html">Modified Version (Ver.2) Tri-Bahtinov Mask Generator</a></p>
+<img src="TBM_SET.JPG" width="500">
+
+<p>Diffraction gratings colored in the same color makes up a set of Bartinov mask. And the tri-bahrtinov mask is formed by the three colored masks.</p>
+<img src="TBM_MOD2.JPG" width="300">
+
+
+<h2>Diffraction images of the Tri-Bahtinov mask with un-collimated optical system</h2>
+<p>Note: All the images below are taken with the same amount of un-collimation. The test star is Vega, OTA is C6, the camera is ASI224 MC, and the mask is made equivalent to F.L.=800mm.
+<table>
+<tr><td>Description</td><td>Diffraction images</td><td>Mask patterm<td></tr>
+<tr><td><b>Defocused image without mask</b><br>Misalignment of optical axis is recognized.</td><td><img width="400" src="DefocusMisAlign.jpg"></td><td></td></tr>
+<tr><td><b>Original</b><br>Misalignment is seen in the 3 o'clock direction</td><td><img width="400" src="tbmOriginalMisalign.jpg"></td><td><img width="400" src="tbm.jpg"></td></tr>
+<!--
+<tr><td><b>Initial modified version</b><br>The misalignment was not recognized.</td><td><img width="400" src="tbmSMisalign.jpg"></td><td><img width="400" src="stbm.jpg"></td></tr>
+-->
+<tr><td><b><a href="../Tri-Bahtinov_symmetric.html">Second modified version</a></b><br>A misalignment larger than the original is seen in the 6 o'clock direction. The light streak is thick.<br><br><font size="-1">NOTE: The diffracted light streak of this modified version rotates 90 degrees with respect to the original.</font></td><td><img width="400" src="tbmSv2Misalign.jpg"></td><td><img width="400" src="stbmV2.jpg"></td></tr>
+<!--
+<tr><td><b>Initial modified version with <a href="../Tri-Bahtinov_symmetric_patch.html">Correction cover</a></b><br>Same as above. About half the intensity</td><td><img width="400" src="tbmSAndCoverMisalign.jpg"></td><td><img width="200" src="Photo_tbmsCover2.jpg"><img width="200" src="Photo_tbmsCover1.jpg"></td></tr>
+-->
+</table>
+
+<h3>Consideration</h3>
+<p>Compared with the original Tribatinov mask, the distance between the oblique gratings(purple) and the horizontal gratings(yellow) is widened. It will contribute to increased sensitivity.</p>
+<img src="tbm_stbmV2.jpg" width="480"/>
+<p>
+<!--The first modified version had a horizontal grating and an inclined pair of gratings equidistant from the center of the aperture.--> And, assuming that the influence of un-collimation is coma, the coma aberration creates aberration due to the image formed by the portion with a different distance from the center of the aperture.(<a href="http://www.openphotographyforums.com/forums/showthread.php?t=18463">Reference</a>) <!--Therefore it may not have been able to detect coma aberration in the first modified version.--> Therefore, the second modified version made it possible to detect by using zones with different distances from the center of the aperture.</p>
+<!--<p>However, if the optical system has astigmatism, it may be possible to detect it even by the first modified version.</p>-->
+<p>The reason why the light streak became thick was probably because the length of the grating was shortened.</p>
+
+<h2>Note: The diffraction image of the Tri-Bahtinov mask with de-focused but collimated</h2>
+<table>
+<tr><td>Description</td><td>Diffraction images</td><td>Mask patterm<td></tr>
+<tr><td><b>Original</b><br>The three sets of diffraction images each show equal amount of de-focusing.</td><td><img width="400" src="tbmOriginalDefocusAllign.jpg"></td><td><img width="400" src="tbm.jpg"></td></tr>
+<!--
+<tr><td><b>Initial modified version</b><br>Larger de-focusing signs are seen</td><td><img width="400" src="tbmSDefocusAllign.jpg"></td><td><img width="400" src="stbm.jpg"></td></tr>
+-->
+<tr><td><b><a href="../Tri-Bahtinov_symmetric.html">Second modified version</a></b><br>Larger de-focusing signs are seen. Light streak is thick.</td><td><img width="400" src="tbmSv2DefocusAllign.jpg"></td><td><img width="400" src="stbmV2.jpg"></td></tr>
+<!--
+<tr><td><b>Initial modified version with <a href="../Tri-Bahtinov_symmetric_patch.html">Correction cover</a></b><br>Same as above. About half the intensity</td><td><img width="400" src="tbmSAndCoverDefocusAllign.jpg"></td><td><img width="200" src="Photo_tbmsCover2.jpg"><img width="200" src="Photo_tbmsCover1.jpg"></td></tr>
+-->
+</table>
+
+
+</body>
+</html>
