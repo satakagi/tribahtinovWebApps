@@ -37,8 +37,9 @@ Revision history:
  Rev.2: 06/14/2017 Add a function that calculates the boundary line starting point so that the areas of right upper slits and lower slits are equal. Add slit:stem ratio option. Mount holes.
  Rev.3: 06/23/2017  Fix a issue about slit stem computation. Add 3rd order spectrum option.
  Rev.4: 06/29/2017  Add download button
- Rev.5: 07/18/2017  Selectable Bartinov Factor
+ Rev.5: 07/18/2017  Selectable Bahtinov Factor
  Rev.6: 01/03/2018  Make changeable outer and inner support width
+        03/23/2020  Extend Bahtinov Factor
 **/
 
 var svgNs = "http://www.w3.org/2000/svg";
@@ -1029,7 +1030,7 @@ function handleDownload(){
 </div>
 <div style="right: 5px; top: 5px; position: absolute;">
 <h2>Tri-Bahtinov Mask Drawings Generator</h2>
-<p>This is rough webApps port of <a href="https://github.com/cytan299/tribahtinov" target="_blank">Tri-Bahtinov Mask generator</a>.<br><font size="-1">Programmed by Satoru Takagi.</font></p>
+<p>This is rough webApps port of <a href="https://github.com/cytan299/tribahtinov" target="_blank">Tri-Bahtinov Mask generator</a>. Discussion on <a href="https://www.cloudynights.com/topic/536410-a-tri-bahtinov-mask-for-sct-collimation-and-focusing/">cloudy nights.</a><br><font size="-1">Programmed by Satoru Takagi.</font></p>
 <p>You may be interested in <a href="Tri-Bahtinov_symmetric4.html">a version with improved sensitivity</a>. 7/15/2018</p>
 
 Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
