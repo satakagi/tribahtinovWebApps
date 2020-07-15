@@ -12,5 +12,8 @@ or use this repo's gitHubPages directry
 * [https://satakagi.github.io/tribahtinovWebApps/Tri-Bahtinov.html](https://satakagi.github.io/tribahtinovWebApps/Tri-Bahtinov.html)
 * [https://satakagi.github.io/tribahtinovWebApps/Tri-Bahtinov_symmetric.html](https://satakagi.github.io/tribahtinovWebApps/Tri-Bahtinov_symmetric.html)
 
+## Reports
+* [https://satakagi.github.io/tribahtinovWebApps/reports/improveSensitivity.html](Improve Sensitivity)
+
 ## License
 The original implementation is respected, it is [GPL3](LICENSE).
