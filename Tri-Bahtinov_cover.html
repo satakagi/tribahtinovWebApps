@@ -201,7 +201,7 @@ function buildCover(){
 }
 
 function cover2(cr,grot){
-	var tri_mid_r =  -tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2 ;
+	var pi=Math.PI;
 	cr.set_source_rgba(1, 1, 1,0)
 	cr.paint()
 
@@ -249,7 +249,7 @@ function cover2(cr,grot){
 	cr.stroke();
 
 	// Now put the entire surface onto a white background
-	cr.set_operator(cr.OPERATOR_DEST_OVER);
+	cr.set_operator(cr.OPERATOR_DEST_IN);
 	cr.set_source_rgb(1,1,1);
 	cr.paint();
 
