@@ -184,23 +184,23 @@ function cover2(cr){
 
 	// join the boundaries with lines
 	// NE line
-	cr.move_to(tri_in_r*cos(theta60), -tri_in_r*sin(theta60));
-	cr.line_to(tri_out_r*cos(theta60), -tri_out_r*sin(theta60));
+	cr.move_to(tri_in_r*Math.cos(theta60), -tri_in_r*Math.sin(theta60));
+	cr.line_to(tri_out_r*Math.cos(theta60), -tri_out_r*Math.sin(theta60));
 	cr.stroke();
 
 	// SE line
-	cr.move_to(tri_in_r*cos(theta60), tri_in_r*sin(theta60));
-	cr.line_to(tri_out_r*cos(theta60), tri_out_r*sin(theta60));
+	cr.move_to(tri_in_r*Math.cos(theta60), tri_in_r*Math.sin(theta60));
+	cr.line_to(tri_out_r*Math.cos(theta60), tri_out_r*Math.sin(theta60));
 	cr.stroke();
 
 	// NW line
-	cr.move_to(-tri_in_r*cos(theta60), -tri_in_r*sin(theta60));
-	cr.line_to(-tri_out_r*cos(theta60), -tri_out_r*sin(theta60));
+	cr.move_to(-tri_in_r*Math.cos(theta60), -tri_in_r*Math.sin(theta60));
+	cr.line_to(-tri_out_r*Math.cos(theta60), -tri_out_r*Math.sin(theta60));
 	cr.stroke();
 
 	// SW line
-	cr.move_to(-tri_in_r*cos(theta60), tri_in_r*sin(theta60));
-	cr.line_to(-tri_out_r*cos(theta60), tri_out_r*sin(theta60));
+	cr.move_to(-tri_in_r*Math.cos(theta60), tri_in_r*Math.sin(theta60));
+	cr.line_to(-tri_out_r*Math.cos(theta60), tri_out_r*Math.sin(theta60));
 	cr.stroke();
 
 	// Now put the entire surface onto a white background
