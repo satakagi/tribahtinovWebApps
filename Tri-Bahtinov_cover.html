@@ -59,8 +59,6 @@ var PAPER_MAX_X = 11*INCH2PIXELS;
 var PAPER_MAX_Y = 11*INCH2PIXELS;
 
 // Tri-Bahtinov parameters that generates my 8" mask
-var focal_length;
-
 var tri_outb_r = 4.4375*INCH2PIXELS; // inches, outer boundary radius
 var tri_inb_r = 1.4375*INCH2PIXELS;  // inches, inner boundary radius
 
@@ -85,10 +83,8 @@ var equalizeArea = true;
 
 var svg;
 
-function initParams(focal_length_mm, tri_outb_r_mm, tri_inb_r_mm , tri_out_w_mm , tri_in_w_mm ){
-	focal_length = focal_length_mm/toMm*INCH2PIXELS;
-//	tri_w = orderFactor * focal_length/BAHTINOV_FACTOR;
-	var tri_w_stem_w = orderFactor * focal_length/BAHTINOV_FACTOR;
+function initParams(tri_outb_r_mm, tri_inb_r_mm , tri_out_w_mm , tri_in_w_mm ){
+	var tri_w_stem_w = orderFactor * 1/BAHTINOV_FACTOR;
 	tri_outb_r = tri_outb_r_mm/toMm*INCH2PIXELS;
 	tri_inb_r = tri_inb_r_mm/toMm*INCH2PIXELS;
 
@@ -118,20 +114,18 @@ function initParams(focal_length_mm, tri_outb_r_mm, tri_inb_r_mm , tri_out_w_mm 
 
 	}
 
-//	console.log("tri_w_stem_w:",tri_w_stem_w," tri_w:",tri_w," tri_stem_w:",tri_stem_w," orderFactor:",orderFactor," focal_length:",focal_length," BAHTINOV_FACTOR:",BAHTINOV_FACTOR);
 
 	tri_in_r = tri_inb_r + tri_in_w;
 //	tri_in_r = tri_inb_r + tri_stem_w;
 
 }
 
-function initParamsInch(focal_length_mm, tri_outb_r, tri_inb_r){
-	initParams(focal_length_mm, tri_outb_r*toMm, tri_inb_r*toMm);
+function initParamsInch(tri_outb_r, tri_inb_r){
+	initParams(tri_outb_r*toMm, tri_inb_r*toMm);
 }
 
 
 onload=function(){
-	tb1 = document.getElementById("textBox1");
 	tb2 = document.getElementById("textBox2");
 	tb3 = document.getElementById("textBox3");
 	outW = document.getElementById("outW");
@@ -624,7 +618,7 @@ function serializeToString(node) {
 
 
 
-var tb1,tb2,tb3,inW,outW;
+var tb2,tb3,inW,outW;
 var upDownBoundaryStem = false;
 var buildMountHoles = true;
 var stemWratio = -1;
@@ -632,7 +626,6 @@ var orderFactor = 1;
 
 function updateMask(){
 	changeUnit();
-	var fl = Number(tb1.value);
 	var out_r = Number(tb2.value);
 	var in_r = Number(tb3.value);
 
@@ -652,7 +645,6 @@ function updateMask(){
 		out_w = out_w * toMm;
 		in_w = in_w * toMm;
 	} else if(paramUiUnit % 3 == 2){
-		fl = fl * toMm;
 		out_r = out_r * toMm;
 		in_r = in_r * toMm;
 		out_w = out_w * toMm;
@@ -661,7 +653,7 @@ function updateMask(){
 
 	console.log("out_w:",out_w, "  in_w:",in_w);
 
-	initParams(fl, out_r, in_r , out_w , in_w );
+	initParams(out_r, in_r , out_w , in_w );
 	//buildMask();
 	buildCover();
 }
@@ -675,13 +667,11 @@ function changeUnit(){
 
 	if ( newUnit % 3 == 0 ){ // mm
 		if ( paramUiUnit % 3 == 1 ){ // f.l.mm
-			tb1.value = Number(tb1.value);
 			tb2.value = Number(tb2.value)*toMm;
 			tb3.value = Number(tb3.value)*toMm;
 			inW.value = Number(inW.value)*toMm;
 			outW.value = Number(outW.value)*toMm;
 		} else if( paramUiUnit % 3 == 2 ){ // in
-			tb1.value = Number(tb1.value)*toMm;
 			tb2.value = Number(tb2.value)*toMm;
 			tb3.value = Number(tb3.value)*toMm;
 			inW.value = Number(inW.value)*toMm;
@@ -689,13 +679,11 @@ function changeUnit(){
 		}
 	} else if ( newUnit % 3 == 1 ){ // f.l. mm
 		if ( paramUiUnit % 3 == 0 ){ // mm
-			tb1.value = Number(tb1.value);
 			tb2.value = Number(tb2.value)/toMm;
 			tb3.value = Number(tb3.value)/toMm;
 			inW.value = Number(inW.value)/toMm;
 			outW.value = Number(outW.value)/toMm;
 		} else if( paramUiUnit % 3 == 2 ){ // in
-			tb1.value = Number(tb1.value)*toMm;
 			tb2.value = Number(tb2.value);
 			tb3.value = Number(tb3.value);
 			inW.value = Number(inW.value);
@@ -703,13 +691,11 @@ function changeUnit(){
 		}
 	} else if ( newUnit % 3 == 2 ){ // in
 		if ( paramUiUnit % 3 == 0 ){ // mm
-			tb1.value = Number(tb1.value)/toMm;
 			tb2.value = Number(tb2.value)/toMm;
 			tb3.value = Number(tb3.value)/toMm;
 			inW.value = Number(inW.value)/toMm;
 			outW.value = Number(outW.value)/toMm;
 		} else if( paramUiUnit % 3 == 1 ){ // f.l.mm
-			tb1.value = Number(tb1.value)/toMm;
 			tb2.value = Number(tb2.value);
 			tb3.value = Number(tb3.value);
 			inW.value = Number(inW.value);
