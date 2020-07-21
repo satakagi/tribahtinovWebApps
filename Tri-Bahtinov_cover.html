@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Modified Tri-Bahtinov Mask Drawings generator webApps</title>
+<title>Satoru Takagi Tri-Bahtinov Mask Cover generator</title>
 </head>
 <script>
 
@@ -142,49 +142,6 @@ onload=function(){
 	updateMask();
 }
 
-function buildMask(){
-
-	svg=document.getElementById("tb");
-	while (svg.firstChild) svg.removeChild(svg.firstChild);
-
-//	console.log("onload:",document.getElementById("tb"));
-	cr = svgContext(svg);
-	draw_slots_left(cr,0);
-	draw_slots_right_up(cr,0);
-	draw_slots_right_down(cr,0);
-	if ( buildMountHoles ){
-		draw_mounting_holes(cr,0);
-	}
-
-	var gr=2*Math.PI/3;
-	draw_slots_left(cr,gr);
-	draw_slots_right_up(cr,gr);
-	draw_slots_right_down(cr,gr);
-	if ( buildMountHoles ){
-		draw_mounting_holes(cr,gr);
-	}
-
-	gr=-2*Math.PI/3;
-	draw_slots_left(cr,gr);
-	draw_slots_right_up(cr,gr);
-	draw_slots_right_down(cr,gr);
-	if ( buildMountHoles ){
-		draw_mounting_holes(cr,gr);
-	}
-
-	cr.clearClipPath();
-	cr.push_group();
-	cr.setGlobalRotation(0);
-
-	cr.arc(0,0, tri_outb_r, 0,2*Math.PI);
-	cr.stroke();
-	cr.arc(0,0, tri_inb_r,  0,2*Math.PI);
-	cr.stroke();
-	cr.pop_group_to_source();
-
-	document.getElementById("svgSrc").value=serializeToString(svg);
-}
-
 function buildCover(){
 
 	svg=document.getElementById("tb");
@@ -192,14 +149,14 @@ function buildCover(){
 
 //	console.log("onload:",document.getElementById("tb"));
 	cr = svgContext(svg);
-	cover2(cr,0);
+	cover2(cr);
 
 	cr.pop_group_to_source();
 
 	document.getElementById("svgSrc").value=serializeToString(svg);
 }
 
-function cover2(cr,grot){
+function cover2(cr){
 	var pi=Math.PI;
 
 	cr.clearClipPath();
@@ -211,8 +168,7 @@ function cover2(cr,grot){
 	cr.set_source_rgba(1, 1, 1,0)
 
 	// set up the surface area and the origin
-	cr.translate(PAPER_MAX_X/2.0, PAPER_MAX_Y/2.0);
-	cr.set_line_width(3);
+	cr.move_to(PAPER_MAX_X/2.0, PAPER_MAX_Y/2.0);
 
 	// Draw a circle that fits over the secondary mirror
 	cr.arc(0,0, tri_inb_r, 0, 2*pi);
@@ -262,157 +218,7 @@ function cover2(cr,grot){
 }
 
 
-/**
-########################################################
-# draw_slots_left(   - draws the slots on the left
-#               cr   - to this context
-#               )
-########################################################
-**/
 
-function draw_slots_left(cr,grot){
-	var tri_mid_r =  -tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2 ;
-	cr.clearClipPath();
-	cr.push_group();
-	cr.setGlobalRotation(grot);
-    // make the mask
-
-	cr.set_operator(cr.OPERATOR_DEST_IN);
-	cr.set_source_rgba(0,0,0,1);
-
-
-	theta0 = Math.PI+(Math.atan2(tri_stem_w/2.0, tri_mid_r) - Math.PI/3.0);
-	theta1 = Math.PI+(-Math.atan2(tri_stem_w/2.0, tri_mid_r) + Math.PI/3.0);
-	cr.arc(0,0, tri_mid_r, theta0, theta1);
-
-	theta0 = -Math.PI+(-Math.atan2(tri_stem_w/2.0, tri_in_r) + Math.PI/3.0);
-	theta1 = -Math.PI+(Math.atan2(tri_stem_w/2.0, tri_in_r) - Math.PI/3.0);
-	cr.arc_negative(0,0, tri_in_r, theta0, theta1);
-	cr.setClipPath();
-//	cr.fill();
-//	cr.clearPath();
-
-	// start drawing the slots
-	spacing = (tri_stem_w + tri_w);
-
-//	y = -tri_out_r;
-	y = -tri_w/2 - spacing * Math.floor(tri_out_r/spacing);
-	while (y < tri_out_r ){
-		cr.rectangle(tri_outb_r, -y, -2*tri_outb_r, -tri_w);
-		y += spacing;
-	}
-    cr.stroke();
-
-
-
-
-	cr.pop_group_to_source();
-	cr.paint();
-
-	return(cr);
-}
-
-/**
-########################################################
-# draw_slots_right_up(   - draws the slots on the upper right
-#               cr   - to this context
-#               )
-########################################################
-**/
-
-function draw_slots_right_up(cr,grot){
-	var tri_mid_r =  tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2;
-	cr.clearClipPath();
-
-	cr.push_group();
-	cr.setGlobalRotation(grot);
-
-    // make the mask
-	theta0 = Math.atan2(tri_stem_w/2.0, tri_out_r) - Math.PI/3.0;
-    theta1 = -(Math.atan2(tri_stem_w/2.0, tri_out_r) );
-    cr.arc(0,0, tri_out_r, theta0, theta1);
-
-    theta0 = -(Math.atan2(tri_stem_w/2.0, tri_mid_r) );
-    theta1 = -(-Math.atan2(tri_stem_w/2.0, tri_mid_r) ) - Math.PI/3.0;
-    cr.arc_negative(0,0, tri_mid_r, theta0, theta1);
-
-//	cr.fill();
-
-	cr.setClipPath();
-	cr.clearPath();
-
-	// start drawing the slots at 10 deg
-	cr.setRotate(-tri_angle); //TBD
-    spacing = (tri_stem_w + tri_w);
-
-	y =  tri_out_r;
-	while (y > - tri_out_r){
-		cr.rectangle(-1*INCH2PIXELS+16*INCH2PIXELS, -y-tri_stem_w, -16*INCH2PIXELS, -tri_w);
-		y -= spacing;
-	}
-
-    // draw only the 3 sides of the rectangle and leave the bottom undrawn
-    // find the position of this last slot
-
-
-    cr.stroke();
-
-
-    cr.clearRotate();
-
-
-
-	cr.pop_group_to_source();
-	cr.paint();
-
-	return(cr);
-}
-
-/**
-########################################################
-# draw_slots_right_down(   - draws the slots on the lower right
-#               cr   - to this context
-#               )
-########################################################
-**/
-
-function draw_slots_right_down(cr,grot){
-	var tri_mid_r =  tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2;
-	cr.clearClipPath();
-    cr.push_group();
-	cr.setGlobalRotation(grot);
-
-    // make the mask
-	theta0 = Math.atan2(tri_stem_w/2.0, tri_out_r) ;
-    theta1 = -(Math.atan2(tri_stem_w/2.0, tri_out_r) - Math.PI/3.0);
-    cr.arc(0,0, tri_out_r, theta0, theta1);
-
-    theta0 = -(Math.atan2(tri_stem_w/2.0, tri_mid_r) - Math.PI/3.0);
-    theta1 = -(-Math.atan2(tri_stem_w/2.0, tri_mid_r) );
-    cr.arc_negative(0,0, tri_mid_r, theta0, theta1);
-
-//	cr.fill();
-
-	cr.setClipPath();
-	cr.clearPath();
-
-// start drawing slots at 10 deg
-    cr.setRotate(tri_angle);
-
-    spacing = (tri_stem_w + tri_w);
-    y = -tri_out_r;
-	while (y < tri_out_r){
-		cr.rectangle(-tri_outb_r+2*tri_outb_r, -y, -2*tri_outb_r, -tri_w);
-		y += spacing;
-	}
-    cr.stroke();
-    cr.clearRotate(); // unrotate
-
-	cr.pop_group_to_source();
-	cr.paint();
-
-	return(cr);
-}
 /**
 ########################################################
 # get_mask_top_boundary(   - calculate where the top edge boundary
@@ -815,25 +621,15 @@ function serializeToString(node) {
     return false;
 }
 
-//########################################################
-//# draw_mounting_holes(   - draws the mounting holes of the mask
-//########################################################
-function draw_mounting_holes(cr,grot){
-	cr.push_group();
-	cr.set_operator(cr.OPERATOR_OVER);
-//	cr.set_source_rgba(0, 0, 0, 1);
-	cr.arc((tri_out_r+(tri_outb_r - tri_out_r)/2.0),0, tri_mount_hole_r, 0,2*Math.PI,36);
-	cr.paint();
-//	cr.stroke();
-	cr.pop_group_to_source();
-	return(cr);
-}
+
+
 
 var tb1,tb2,tb3,inW,outW;
 var upDownBoundaryStem = false;
 var buildMountHoles = true;
 var stemWratio = -1;
 var orderFactor = 1;
+
 function updateMask(){
 	changeUnit();
 	var fl = Number(tb1.value);
@@ -847,38 +643,6 @@ function updateMask(){
 		out_r = out_r / 2.0;
 		in_r = in_r / 2.0;
 	}
-
-
-	if ( document.getElementById("stemB").checked ){
-		upDownBoundaryStem = true;
-	} else {
-		upDownBoundaryStem = false;
-	}
-
-	if ( document.getElementById("mountH").checked ){
-		buildMountHoles = true;
-	} else {
-		buildMountHoles = false;
-	}
-
-	if ( document.getElementById("equalizeArea").checked ){
-		equalizeArea = true;
-	} else {
-		equalizeArea = false;
-	}
-
-	if ( document.getElementById("thirdO").checked ){
-		orderFactor = 3.0;
-	} else {
-		orderFactor = 1.0;
-	}
-
-	var stemWselect = document.getElementById("stemW").selectedIndex;
-	stemWratio = Number(document.getElementById("stemW").options[stemWselect].value);
-//	console.log("stemWratio:",stemWratio);
-
-	var BFselect = document.getElementById("bartinovF").selectedIndex;
-	BAHTINOV_FACTOR = Number(document.getElementById("bartinovF").options[BFselect].value);
 
 	if (paramUiUnit % 3 == 0){
 		// no change
@@ -900,7 +664,6 @@ function updateMask(){
 	initParams(fl, out_r, in_r , out_w , in_w );
 	//buildMask();
 	buildCover();
-
 }
 
 var paramUiUnit = 0;
@@ -1054,7 +817,7 @@ function handleDownload(){
 </svg>
 </div>
 <div style="right: 5px; top: 5px; position: absolute;">
-<h3>2nd Modified Tri-Bahtinov Mask Drawings Generator</h3>
+<h3>Tri-Bahtinov Mask Cover Generator - Satoru Takagi version</h3>
 <p>This is <a href="reports/improveSensitivity.html" target="_blank">second modified version</a> of cytan's <a href="https://github.com/cytan299/tribahtinov" target="_blank">Tri-Bahtinov Mask</a> generator.<br><font size="-1">Programmed by Satoru Takagi.</font></p>
 <p>Test Report: See <a href="reports/improveSensitivity.html" target="_blank">this page</a>.  Explanation of parameters: See <a href="TBM_s4_exp.jpg" target="_blank">this figure</a>.</p>
 
@@ -1066,59 +829,11 @@ Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
 <option value="">F.L.:[mm], Radius:[in]</option>
 <option value="">F.L.:[in], Radius:[in]</option>
 </select>
- <input id="mountH" type="checkbox" checked="true" autocomplete="off" />:Build mount holes
 <br>
 	<table border="0">
-    <tr><td><span id="pName1">Focal Length :</span></td><td><input name="textBox1" id="textBox1" type="text" value="2069.973" autocomplete="off" /></td></tr>
     <tr><td><span id="pName2">Outer Diameter :</span></td><td><input name="textBox2" id="textBox2" type="text" value="225.425" autocomplete="off" /> <span style="font-size:10px">Aperture </span><span style="font-size:10px" id="apSpan"></span></td></tr>
     <tr><td><span id="pName3">Inner Diameter :</span></td><td><input name="textBox3" id="textBox3" type="text" value="73.025" autocomplete="off" /> <span style="font-size:10px">Central Obstruction <span><span style="font-size:10px" id="coSpan"></span></td></tr>
     </table>
-
-    <span style="display:none">
-	<input id="stemB" type="checkbox" autocomplete="off" />:Build <a href="https://www.cloudynights.com/topic/536410-a-tri-bahtinov-mask-for-sct-collimation-and-focusing/#entry7920788" target="_blank">boundary stem</a>
-	<input id="equalizeArea" type="checkbox" checked="true" autocomplete="off" />:Equalize Upper &amp; Lower areas<br>
-    </span>
-
-	<select id="stemW" autocomplete="off">
-	 <option value="-1"   >StemWidth = 0.2362in</option>
-	 <option value="2"    >StemWidth : SlitWidth = 1:2.0</option>
-	 <option value="1.8"  >StemWidth : SlitWidth = 1:1.8</option>
-	 <option value="1.6"  >StemWidth : SlitWidth = 1:1.6</option>
-	 <option value="1.4"  >StemWidth : SlitWidth = 1:1.4</option>
-	 <option value="1.3"  >StemWidth : SlitWidth = 1:1.3</option>
-	 <option value="1.2"  >StemWidth : SlitWidth = 1:1.2</option>
-	 <option value="1.1"  >StemWidth : SlitWidth = 1:1.1</option>
-	 <option value="1" selected >StemWidth : SlitWidth = 1:1</option>
-	 <option value="0.909">StemWidth : SlitWidth = 1.1:1</option>
-	 <option value="0.833">StemWidth : SlitWidth = 1.2:1</option>
-	 <option value="0.769">StemWidth : SlitWidth = 1.3:1</option>
-	 <option value="0.714">StemWidth : SlitWidth = 1.4:1</option>
-	 <option value="0.625">StemWidth : SlitWidth = 1.6:1</option>
-	 <option value="0.556">StemWidth : SlitWidth = 1.8:1</option>
-	 <option value="0.5"  >StemWidth : SlitWidth = 2.0:1</option>
-	</select>
-
-    <input id="thirdO" type="checkbox"  autocomplete="off" />:Use <a href="https://www.cloudynights.com/topic/178843-revolutionary-new-way-of-focusing-no-less/page-5#entry2381128" target="_blank">3rd order spectrum</a>
-    <br>
-	<a href="https://www.cloudynights.com/topic/178843-revolutionary-new-way-of-focusing-no-less/#entry2309839" target="_blank">Bartinov Factor</a>:
-	<select id="bartinovF" autocomplete="off">
-	 <option value="100" >100</option>
-	 <option value="110" >110</option>
-	 <option value="120" >120</option>
-	 <option value="130" >130</option>
-	 <option value="140" >140</option>
-	 <option value="150" selected >150</option>
-	 <option value="160" >160</option>
-	 <option value="170" >170</option>
-	 <option value="180" >180</option>
-	 <option value="190" >190</option>
-	 <option value="200" >200</option>
-	 <option value="210" >210</option>
-	 <option value="220" >220</option>
-	 <option value="230" >230</option>
-	 <option value="240" >240</option>
-	 <option value="250" >250</option>
-    </select>
 
     <span id="inWt">inW:</span><input name="inW" id="inW" type="text" style="width:50px" value="5.99948" autocomplete="off" />
     <span id="outWt">outW:</span><input name="outW" id="outW" type="text" style="width:50px" value="11.1125" autocomplete="off" />
