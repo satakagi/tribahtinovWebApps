@@ -194,7 +194,6 @@ function buildCover(){
 	cr = svgContext(svg);
 	cover2(cr,0);
 
-	cr.stroke();
 	cr.pop_group_to_source();
 
 	document.getElementById("svgSrc").value=serializeToString(svg);
