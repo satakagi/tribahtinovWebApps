@@ -201,8 +201,14 @@ function buildCover(){
 
 function cover2(cr,grot){
 	var pi=Math.PI;
+
+	cr.clearClipPath();
+	cr.push_group();
+
+	cr.set_operator(cr.OPERATOR_DEST_IN);
+	//cr.set_source_rgba(0,0,0,1);
+
 	cr.set_source_rgba(1, 1, 1,0)
-	cr.paint()
 
 	// set up the surface area and the origin
 	cr.translate(PAPER_MAX_X/2.0, PAPER_MAX_Y/2.0);
