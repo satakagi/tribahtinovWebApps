@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Satoru Takagi Tri-Bahtinov Mask Cover generator</title>
+<title>Tri-Bahtinov Mask Cover generator - Satoru Takagi version</title>
 </head>
 <script>
 
@@ -133,7 +133,7 @@ onload=function(){
 //	initParamsInch(1170.051,4.4375,1.4375);
 //	buildMask();
 	changeUnit();
-	updateMask();
+	updateCover();
 }
 
 function buildCover(){
@@ -143,14 +143,17 @@ function buildCover(){
 
 //	console.log("onload:",document.getElementById("tb"));
 	cr = svgContext(svg);
-	cover2(cr);
+	cover(cr);
 
 	cr.pop_group_to_source();
 
 	document.getElementById("svgSrc").value=serializeToString(svg);
 }
 
-function cover2(cr){
+function cover(cr){
+	// Python code ported to JS
+	// Original code developed by C.Y. Tan <Contact: cytan299@yahoo.com>
+	// https://github.com/cytan299/tribahtinov/blob/master/cover_generator/cover_v2/cover_v2.py
 	var pi=Math.PI;
 
 	cr.clearClipPath();
@@ -160,9 +163,6 @@ function cover2(cr){
 	//cr.set_source_rgba(0,0,0,1);
 
 	cr.set_source_rgba(1, 1, 1,0)
-
-	// set up the surface area and the origin
-	//cr.move_to(PAPER_MAX_X/2.0, PAPER_MAX_Y/2.0);
 
 	// Draw a circle that fits over the secondary mirror
 	cr.arc(0,0, tri_inb_r, 0, 2*pi);
@@ -624,7 +624,7 @@ var buildMountHoles = true;
 var stemWratio = -1;
 var orderFactor = 1;
 
-function updateMask(){
+function updateCover(){
 	changeUnit();
 	var out_r = Number(tb2.value);
 	var in_r = Number(tb3.value);
@@ -789,8 +789,8 @@ function handleDownload(){
 	var content = document.getElementById("svgSrc").value;
 	var blob = new Blob([ content ], { "type" : "image/svg+xml " });
 	if (window.navigator.msSaveBlob) {
-		window.navigator.msSaveBlob(blob, "triBahtinovMask.svg");
-//		window.navigator.msSaveOrOpenBlob(blob, "triBahtinovMask.svg");
+		window.navigator.msSaveBlob(blob, "triBahtinovMaskCover.svg");
+//		window.navigator.msSaveOrOpenBlob(blob, "triBahtinovMaskCover.svg");
 	} else {
 		document.getElementById("downloadAnchor").href = window.URL.createObjectURL(blob);
 		document.getElementById("downloadAnchor").click();
@@ -804,8 +804,8 @@ function handleDownload(){
 </div>
 <div style="right: 5px; top: 5px; position: absolute;">
 <h3>Tri-Bahtinov Mask Cover Generator - Satoru Takagi version</h3>
-<p>This is <a href="reports/improveSensitivity.html" target="_blank">second modified version</a> of cytan's <a href="https://github.com/cytan299/tribahtinov" target="_blank">Tri-Bahtinov Mask</a> generator.<br><font size="-1">Programmed by Satoru Takagi.</font></p>
-<p>Test Report: See <a href="reports/improveSensitivity.html" target="_blank">this page</a>.  Explanation of parameters: See <a href="TBM_s4_exp.jpg" target="_blank">this figure</a>.</p>
+<p>This is a cover for collimating a reflector telescope using a <br><a href="Tri-Bahtinov_symmetric.html" target="_blank">Tri-Bahtinov Mask</a> (Satoru Takagi version) and <br>the K. Evans' <a href="https://github.com/1CM69/Tri-Bahtinov_Grabber" target="_blank">Tri-Bahtinov Grabber program</a>.<br><font size="-1">Developed by Jordi Blasco (<a href="https://skylabs.co.nz" target="_blank">Skylabs</a>).</font></p>
+<!--<p>Download the <a href="http://skylabs.co.nz/images/Tri-Bahtinov_quick_guide.pdf" target="_blank">quick guide</a>.</p>-->
 
 Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
 <option value="" selected>F.L.:[mm], Diameters:[mm]</option>
@@ -825,8 +825,8 @@ Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
     <span id="outWt">outW:</span><input name="outW" id="outW" type="text" style="width:50px" value="11.1125" autocomplete="off" />
 
     <br>
-    <input type="button" value="Draw Tri-Bahtinov Mask" onclick="updateMask();" />
-    <a id="downloadAnchor" href="" download="triBahtinovMask.svg" style="display:none" >hiddenDL</a>
+    <input type="button" value="Draw Tri-Bahtinov Mask Cover" onclick="updateCover();" />
+    <a id="downloadAnchor" href="" download="triBahtinovMaskCover.svg" style="display:none" >hiddenDL</a>
     <input type="button" value="DOWNLOAD svg" onclick="handleDownload()"/>
     <hr>
 <h3>SVG Source</h3>
