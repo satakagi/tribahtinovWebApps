@@ -137,14 +137,12 @@ onload=function(){
 }
 
 function buildCover(){
-
 	svg=document.getElementById("tb");
 	while (svg.firstChild) svg.removeChild(svg.firstChild);
 
 //	console.log("onload:",document.getElementById("tb"));
 	cr = svgContext(svg);
 	cover(cr);
-
 	cr.pop_group_to_source();
 
 	document.getElementById("svgSrc").value=serializeToString(svg);
@@ -155,6 +153,9 @@ function cover(cr){
 	// Original code developed by C.Y. Tan <Contact: cytan299@yahoo.com>
 	// https://github.com/cytan299/tribahtinov/blob/master/cover_generator/cover_v2/cover_v2.py
 	var pi=Math.PI;
+	var tri_mid_r =  -tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2 ;
+	var tri_mid_in_r =  tri_inb_r + ( tri_in_r -  tri_inb_r )/ 2 ;
+	var tri_mid_out_r =  tri_outb_r + ( tri_out_r -  tri_outb_r )/ 2 ;
 
 	cr.clearClipPath();
 	cr.push_group();
@@ -170,47 +171,61 @@ function cover(cr){
 
 	// Draw the inner boundary that is tri_in_w bigger than the inner circle
 	theta30 = 30*pi/180.0;
-	cr.arc(0,0, tri_in_r, 3*pi/2.0-theta30, 3*pi/2.0+theta30);
-	cr.stroke();
-	cr.arc(0,0, tri_in_r, pi/2.0-theta30, pi/2.0+theta30);
-	cr.stroke();
-
-	// Draw the outer boundary that misses the screws
 	theta60 = 60*pi/180.0;
-	cr.arc(0,0, tri_out_r, -theta60, theta60);
+	cr.setRotate(Math.PI/2);
+	cr.arc(0,0, tri_mid_r, 3*pi/2.0-theta60, 3*pi/2.0+theta60);
 	cr.stroke();
-	cr.arc(0,0, tri_out_r, pi-theta60, pi+theta60);
+	cr.arc(0,0, tri_mid_in_r, pi/2.0-theta60, pi/2.0+theta60);
+	cr.stroke();
+	cr.arc(0,0, tri_mid_r, pi/2.0-theta60, pi/2.0+theta60);
+	cr.stroke();
+	// Draw the outer boundary that misses the screws
+	//cr.arc(0,0, tri_outb_r, 0, 2*pi);
+	//cr.stroke();
+	cr.arc(0,0, tri_outb_r, 3*pi/2.0+theta60, 3*pi/2.0-theta60);
 	cr.stroke();
 
 	// join the boundaries with lines
-	// NE line
-	cr.move_to(tri_in_r*Math.cos(theta60), -tri_in_r*Math.sin(theta60));
-	cr.line_to(tri_out_r*Math.cos(theta60), -tri_out_r*Math.sin(theta60));
+	cr.move_to(tri_mid_r*Math.cos(theta30), -tri_mid_r*Math.sin(theta30));
+	cr.line_to(tri_outb_r*Math.cos(theta30), -tri_outb_r*Math.sin(theta30));
 	cr.stroke();
 
-	// SE line
-	cr.move_to(tri_in_r*Math.cos(theta60), tri_in_r*Math.sin(theta60));
-	cr.line_to(tri_out_r*Math.cos(theta60), tri_out_r*Math.sin(theta60));
+	cr.move_to(tri_mid_in_r*Math.cos(theta30), tri_mid_in_r*Math.sin(theta30));
+	cr.line_to(tri_mid_r*Math.cos(theta30), tri_mid_r*Math.sin(theta30));
 	cr.stroke();
 
-	// NW line
-	cr.move_to(-tri_in_r*Math.cos(theta60), -tri_in_r*Math.sin(theta60));
-	cr.line_to(-tri_out_r*Math.cos(theta60), -tri_out_r*Math.sin(theta60));
+	cr.move_to(-tri_mid_r*Math.cos(theta30), -tri_mid_r*Math.sin(theta30));
+	cr.line_to(-tri_outb_r*Math.cos(theta30), -tri_outb_r*Math.sin(theta30));
 	cr.stroke();
 
-	// SW line
-	cr.move_to(-tri_in_r*Math.cos(theta60), tri_in_r*Math.sin(theta60));
-	cr.line_to(-tri_out_r*Math.cos(theta60), tri_out_r*Math.sin(theta60));
+	cr.move_to(-tri_mid_in_r*Math.cos(theta30), tri_mid_in_r*Math.sin(theta30));
+	cr.line_to(-tri_mid_r*Math.cos(theta30), tri_mid_r*Math.sin(theta30));
 	cr.stroke();
+	cr.clearRotate();
+  //cr.arc((tri_out_r+(tri_outb_r - tri_out_r)/2.0),0, tri_mount_hole_r, 0,2*Math.PI,36);
+	//cr.stroke();
+
+	cr.setRotate(2*Math.PI/3);
+	cr.arc((tri_out_r+(tri_outb_r - tri_out_r)/2.0),0, tri_mount_hole_r, 0,2*Math.PI,36);
+	cr.stroke();
+	cr.clearRotate();
+
+	cr.setRotate(-2*Math.PI/3);
+	cr.arc((tri_out_r+(tri_outb_r - tri_out_r)/2.0),0, tri_mount_hole_r, 0,2*Math.PI,36);
+	cr.stroke();
+	cr.clearRotate();
+
+	console.log("tri_stem_w:",tri_stem_w," tri_mid_r:",tri_mid_r);
+	console.log("tri_out_r:",tri_out_r," tri_in_r:",tri_in_r);
+	console.log("tri_mid_out_r:",tri_mid_out_r," tri_mid_in_r:",tri_mid_in_r);
 
 	// Now put the entire surface onto a white background
 	cr.set_operator(cr.OPERATOR_DEST_IN);
 	cr.set_source_rgb(1,1,1);
 	cr.paint();
-
 	return(cr);
-}
 
+}
 
 
 /**
@@ -805,7 +820,7 @@ function handleDownload(){
 <div style="right: 5px; top: 5px; position: absolute;">
 <h3>Tri-Bahtinov Mask Cover Generator - Satoru Takagi version</h3>
 <p>This is a cover for collimating a reflector telescope using a <br><a href="Tri-Bahtinov_symmetric.html" target="_blank">Tri-Bahtinov Mask</a> (Satoru Takagi version) and <br>the K. Evans' <a href="https://github.com/1CM69/Tri-Bahtinov_Grabber" target="_blank">Tri-Bahtinov Grabber program</a>.<br><font size="-1">Developed by Jordi Blasco (<a href="https://skylabs.co.nz" target="_blank">Skylabs</a>).</font></p>
-<!--<p>Download the <a href="http://skylabs.co.nz/images/Tri-Bahtinov_quick_guide.pdf" target="_blank">quick guide</a>.</p>-->
+<p>Download the <a href="http://skylabs.co.nz/images/Improved_Sensitivity_Tri_Bahtinov_Mask_Quick_Guide.pdf" target="_blank">quick guide</a>.</p>
 
 Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
 <option value="" selected>F.L.:[mm], Diameters:[mm]</option>
