@@ -10,7 +10,7 @@ In addition, a symmetric version with improved sensitivity has been added.
 # bahtinovWebApps
 Since AstroJargon's site seems to have disappeared, here is a webApps version of the original Bahtinov mask pattern generator for redundancy.
 
-* [Bahtinov mask generator webApps](Bahtinov.html)
+* [Bahtinov mask generator webApps](https://satakagi.github.io/tribahtinovWebApps/Bahtinov.html)
 
 ## former webApps page
 * [http://svg2.mbsrv.net/astro/Tri-Bahtinov.html](http://svg2.mbsrv.net/astro/Tri-Bahtinov.html)
