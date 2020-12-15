@@ -2,21 +2,16 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Modified Tri-Bahtinov Mask Drawings generator webApps</title>
+<title>Bahtinov Mask Drawings generator webApps</title>
 </head>
 <script>
 
 /**
-	Tri-Bahtinov Mask Drawings generator webApps
-	Copyright (C) 2017-2020  Satoru Takagi
-    Copyright (C) 2016  C.Y. Tan
+	Bahtinov Mask Drawings generator webApps
+	Copyright (C) 2020  Satoru Takagi
 	
+	bsed on Tri-Bahtinov Mask generator webApps
 	
-    Ported from generate.py 
-    Copyright (C) 2016  C.Y. Tan
-    https://github.com/cytan299/tribahtinov
-
-
     This software is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -33,15 +28,7 @@
 
 /**
 Revision history:
- Rev.1: First draft port from original generate.py. Add boundary stem option.
- Rev.2: 06/14/2017 Add a function that calculates the boundary line starting point so that the areas of right upper slits and lower slits are equal. Add slit:stem ratio option. Mount holes.
- Rev.3: 06/23/2017  Fix a issue about slit stem computation. Add 3rd order spectrum option.
- Rev.4: 06/29/2017  Add download button
- Rev.5: 07/18/2017  Selectable Bartinov Factor
- Rev.6: 01/03/2018  Make changeable outer and inner support width
- Rev.S1:06/23/2018  Modified Revision for improvement of the sensitivity
-        02/23/2020  Add explanation etc.
-        03/30/2020  Asymmetric bug fix
+        12/15/2020  1st rev
 **/
 
 /**
@@ -77,7 +64,7 @@ var tri_in_w = 0.2362*INCH2PIXELS; // inches, width of the inner support
 
 var tri_mount_hole_r = 0.075*INCH2PIXELS; // mounting hole size
 
-var tri_angle = 10*Math.PI/180; // radians
+var tri_angle = 15*Math.PI/180; // radians
 
 var upDownBoundaryStemRatio = 0.66; // The ratio of advance to the up side when creating a boundary stem. Since the lower side of the boundary sem works somewhat as upper slit, it is set larger than half.
 
@@ -156,6 +143,7 @@ function buildMask(){
 		draw_mounting_holes(cr,0);
 	}
 	
+	/**
 	var gr=2*Math.PI/3;
 	draw_slots_left(cr,gr);
 	draw_slots_right_up(cr,gr);
@@ -171,6 +159,7 @@ function buildMask(){
 	if ( buildMountHoles ){
 		draw_mounting_holes(cr,gr);
 	}
+	**/
 	
 	cr.clearClipPath();
 	cr.push_group();
@@ -194,7 +183,8 @@ function buildMask(){
 **/
 
 function draw_slots_left(cr,grot){
-	var tri_mid_r =  -tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2 ;
+//	var tri_mid_r =  -tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2 ;
+	var tri_mid_r =  tri_out_r ;
 	cr.clearClipPath();
 	cr.push_group();
 	cr.setGlobalRotation(grot);
@@ -204,13 +194,15 @@ function draw_slots_left(cr,grot){
 	cr.set_source_rgba(0,0,0,1);
 
 
-	theta0 = Math.PI+(Math.atan2(tri_stem_w/2.0, tri_mid_r) - Math.PI/3.0);
-	theta1 = Math.PI+(-Math.atan2(tri_stem_w/2.0, tri_mid_r) + Math.PI/3.0);
+	theta0 = Math.PI+(Math.atan2(tri_stem_w/2.0, tri_mid_r) - Math.PI/2.0);
+	theta1 = Math.PI+(-Math.atan2(tri_stem_w/2.0, tri_mid_r) + Math.PI/2.0);
 	cr.arc(0,0, tri_mid_r, theta0, theta1);
 
-	theta0 = -Math.PI+(-Math.atan2(tri_stem_w/2.0, tri_in_r) + Math.PI/3.0);
-	theta1 = -Math.PI+(Math.atan2(tri_stem_w/2.0, tri_in_r) - Math.PI/3.0);
-	cr.arc_negative(0,0, tri_in_r, theta0, theta1);
+	theta0 = -Math.PI+(-Math.atan2(tri_stem_w/2.0, tri_in_r) + Math.PI/2.0);
+	theta1 = -Math.PI+(Math.atan2(tri_stem_w/2.0, tri_in_r) - Math.PI/2.0);
+	if ( tri_in_r > tri_in_w){
+		cr.arc_negative(0,0, tri_in_r, theta0, theta1);
+	}
 	cr.setClipPath();
 //	cr.fill();
 //	cr.clearPath();
@@ -219,7 +211,7 @@ function draw_slots_left(cr,grot){
 	spacing = (tri_stem_w + tri_w);
 
 //	y = -tri_out_r;
-	y = -tri_w/2 - spacing * Math.floor(tri_out_r/spacing);
+	y = -tri_w/2 - spacing * (Math.floor(tri_out_r/spacing)+1);
 	while (y < tri_out_r ){
 		cr.rectangle(tri_outb_r, -y, -2*tri_outb_r, -tri_w);
 		y += spacing;
@@ -244,20 +236,25 @@ function draw_slots_left(cr,grot){
 **/
 
 function draw_slots_right_up(cr,grot){
-	var tri_mid_r =  tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2;
+//	var tri_mid_r =  tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2;
+	var tri_mid_r =  tri_in_r;
 	cr.clearClipPath();
 	
 	cr.push_group();
 	cr.setGlobalRotation(grot);
 	
     // make the mask
-	theta0 = Math.atan2(tri_stem_w/2.0, tri_out_r) - Math.PI/3.0;
+	theta0 = Math.atan2(tri_stem_w/2.0, tri_out_r) - Math.PI/2.0;
     theta1 = -(Math.atan2(tri_stem_w/2.0, tri_out_r) );
     cr.arc(0,0, tri_out_r, theta0, theta1);
 
     theta0 = -(Math.atan2(tri_stem_w/2.0, tri_mid_r) );
-    theta1 = -(-Math.atan2(tri_stem_w/2.0, tri_mid_r) ) - Math.PI/3.0;
-    cr.arc_negative(0,0, tri_mid_r, theta0, theta1);
+    theta1 = -(-Math.atan2(tri_stem_w/2.0, tri_mid_r) ) - Math.PI/2.0;
+	if ( tri_in_r > tri_in_w){
+	    cr.arc_negative(0,0, tri_mid_r, theta0, theta1);
+	} else {
+		cr.line_to(tri_stem_w/2,-tri_stem_w/2);
+	}
 
 //	cr.fill();
 	
@@ -300,20 +297,24 @@ function draw_slots_right_up(cr,grot){
 **/
 
 function draw_slots_right_down(cr,grot){
-	var tri_mid_r =  tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2;
+//	var tri_mid_r =  tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2;
+	var tri_mid_r =  tri_in_r;
 	cr.clearClipPath();
     cr.push_group();
 	cr.setGlobalRotation(grot);
 
     // make the mask
 	theta0 = Math.atan2(tri_stem_w/2.0, tri_out_r) ;
-    theta1 = -(Math.atan2(tri_stem_w/2.0, tri_out_r) - Math.PI/3.0);
+    theta1 = -(Math.atan2(tri_stem_w/2.0, tri_out_r) - Math.PI/2.0);
     cr.arc(0,0, tri_out_r, theta0, theta1);
 
-    theta0 = -(Math.atan2(tri_stem_w/2.0, tri_mid_r) - Math.PI/3.0);
+    theta0 = -(Math.atan2(tri_stem_w/2.0, tri_mid_r) - Math.PI/2.0);
     theta1 = -(-Math.atan2(tri_stem_w/2.0, tri_mid_r) );
-    cr.arc_negative(0,0, tri_mid_r, theta0, theta1);
-
+	if ( tri_in_r > tri_in_w){
+	    cr.arc_negative(0,0, tri_mid_r, theta0, theta1);
+	} else {
+		cr.line_to(tri_stem_w/2,tri_stem_w/2);
+	}
 //	cr.fill();
 	
 	cr.setClipPath();
@@ -754,7 +755,7 @@ function draw_mounting_holes(cr,grot){
 
 var tb1,tb2,tb3,inW,outW;
 var upDownBoundaryStem = false;
-var buildMountHoles = true;
+var buildMountHoles = false;
 var stemWratio = -1;
 var orderFactor = 1;
 function updateMask(){
@@ -777,13 +778,13 @@ function updateMask(){
 	} else {
 		upDownBoundaryStem = false;
 	}
-	
+	/**
 	if ( document.getElementById("mountH").checked ){
 		buildMountHoles = true;
 	} else {
 		buildMountHoles = false;
 	}
-	
+	**/
 	if ( document.getElementById("equalizeArea").checked ){
 		equalizeArea = true;
 	} else {
@@ -976,11 +977,9 @@ function handleDownload(){
 </svg>
 </div>
 <div style="right: 5px; top: 5px; position: absolute;">
-<h3>2nd Modified Tri-Bahtinov Mask Drawings Generator</h3>
-<p>This is <a href="reports/improveSensitivity.html" target="_blank">second modified version</a> of cytan's <a href="https://github.com/cytan299/tribahtinov" target="_blank">Tri-Bahtinov Mask</a> generator.<br>
-<a href="https://www.cloudynights.com/topic/536410-a-tri-bahtinov-mask-for-sct-collimation-and-focusing/" target="_blank">Discussion</a> on cloudynights.<br>
+<h3>Bahtinov Mask Drawings Generator</h3>
+<p>This is <a href="https://en.wikipedia.org/wiki/Bahtinov_mask" target="_blank">Bahtinov Mask</a> generator. <a href="https://www.cloudynights.com/topic/178843-revolutionary-new-way-of-focusing-no-less/">Cloudynights thread</a><br>
 <font size="-1">Programmed by Satoru Takagi.</font></p>
-<p>Test Report: See <a href="reports/improveSensitivity.html" target="_blank">this page</a>.  Explanation of parameters: See <a href="TBM_s4_exp.jpg" target="_blank">this figure</a>.</p>
 
 Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
 <option value="" selected>F.L.:[mm], Diameters:[mm]</option>
@@ -990,7 +989,7 @@ Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
 <option value="">F.L.:[mm], Radius:[in]</option>
 <option value="">F.L.:[in], Radius:[in]</option>
 </select>
- <input id="mountH" type="checkbox" checked="true" autocomplete="off" />:Build mount holes
+<!-- <input id="mountH" type="checkbox" checked="true" autocomplete="off" />:Build mount holes-->
 <br>
 	<table border="0">
     <tr><td><span id="pName1">Focal Length :</span></td><td><input name="textBox1" id="textBox1" type="text" value="2069.973" autocomplete="off" /></td></tr>
@@ -1048,7 +1047,7 @@ Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
     <span id="outWt">outW:</span><input name="outW" id="outW" type="text" style="width:50px" value="11.1125" autocomplete="off" />
     
     <br>
-    <input type="button" value="Draw Tri-Bahtinov Mask" onclick="updateMask();" />
+    <input type="button" value="Draw Bahtinov Mask" onclick="updateMask();" />
     <a id="downloadAnchor" href="" download="triBahtinovMask.svg" style="display:none" >hiddenDL</a>
     <input type="button" value="DOWNLOAD svg" onclick="handleDownload()"/>
     <hr>
