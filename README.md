@@ -19,7 +19,7 @@ Since AstroJargon's site seems to have disappeared, here is a webApps version of
 * [Improve Sensitivity of Tri-Bahtinov Mask](reports/improveSensitivity.html)
 
 ## About this site
-This site is content that has been moved from https://svg2.mbsrv.net/astro/ to improve accessibility and maintainability by GitHub Pages, maintained by satoru takagi.
+This site is content that has been moved from https://svg2.mbsrv.net/astro/ to improve accessibility and maintainability by GitHub Pages, maintained by Satoru Takagi.
 
 ## License
 The original implementation is respected, so it is [GPL3](LICENSE).
