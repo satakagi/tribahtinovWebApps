@@ -10,7 +10,7 @@ In addition, a symmetric version with improved sensitivity has been added.
 * [Improved sensitivity version](https://satakagi.github.io/tribahtinovWebApps/Tri-Bahtinov_symmetric.html)
   * [Tri-Bahtinov_cover for improved sensitivity version](https://satakagi.github.io/tribahtinovWebApps/Tri-Bahtinov_cover.html) (contributed by jordiblasco [How to use](https://www.cloudynights.com/topic/536410-a-tri-bahtinov-mask-for-sct-collimation-and-focusing/?p=10370496))
 
-## Original Bahtinov Mask Pattern Generator WebApps
+## Original Bahtinov Mask Pattern Generator WebApps {#bahtinovwebapps}
 Since AstroJargon's site seems to have disappeared, here is a webApps version of the original Bahtinov mask pattern generator for redundancy.
 
 * [Bahtinov mask generator webApps](https://satakagi.github.io/tribahtinovWebApps/Bahtinov.html)
