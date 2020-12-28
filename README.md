@@ -16,7 +16,7 @@ Since AstroJargon's site seems to have disappeared, here is a webApps version of
 * [Bahtinov mask generator webApps](https://satakagi.github.io/tribahtinovWebApps/Bahtinov.html)
 
 ## Reports
-* Improve Sensitivity - [https://satakagi.github.io/tribahtinovWebApps/reports/improveSensitivity.html](https://satakagi.github.io/tribahtinovWebApps/reports/improveSensitivity.html)
+* [Improve Sensitivity of Tri-Bahtinov Mask](reports/improveSensitivity.html)
 
 ## About this site
 This site is content that has been moved from https://svg2.mbsrv.net/astro/ to improve accessibility and maintainability by GitHub Pages, maintained by satoru takagi.
