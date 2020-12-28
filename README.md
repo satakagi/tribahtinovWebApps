@@ -1,6 +1,6 @@
 <p align="right">Language: <a href="https://satakagi.github.io/tribahtinovWebApps/">English</a>, <a href="https://translate.google.co.jp/translate?sl=en&tl=ja&u=https%3A%2F%2Fsatakagi.github.io%2FtribahtinovWebApps%2F">Japanese (Google Translation)</a></p>
 
-# Tri-Bahtinov Mask and original Bahtinov Mask Pattern Generator
+# Tri-Bahtinov Mask and original Bahtinov Mask Pattern Generators
 
 ## Tri-Bahtinov Mask Pattern Generator WebApps
 
