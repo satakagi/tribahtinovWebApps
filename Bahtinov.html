@@ -963,8 +963,8 @@ function handleDownload(){
 	var content = document.getElementById("svgSrc").value;
 	var blob = new Blob([ content ], { "type" : "image/svg+xml " });
 	if (window.navigator.msSaveBlob) { 
-		window.navigator.msSaveBlob(blob, "triBahtinovMask.svg"); 
-//		window.navigator.msSaveOrOpenBlob(blob, "triBahtinovMask.svg");
+		window.navigator.msSaveBlob(blob, "BahtinovMask.svg"); 
+//		window.navigator.msSaveOrOpenBlob(blob, "BahtinovMask.svg");
 	} else {
 		document.getElementById("downloadAnchor").href = window.URL.createObjectURL(blob);
 		document.getElementById("downloadAnchor").click();
@@ -1049,7 +1049,7 @@ Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
     
     <br>
     <input type="button" value="Draw Bahtinov Mask" onclick="updateMask();" />
-    <a id="downloadAnchor" href="" download="triBahtinovMask.svg" style="display:none" >hiddenDL</a>
+    <a id="downloadAnchor" href="" download="BahtinovMask.svg" style="display:none" >hiddenDL</a>
     <input type="button" value="DOWNLOAD svg" onclick="handleDownload()"/>
     <hr>
 <h3>SVG Source</h3>
