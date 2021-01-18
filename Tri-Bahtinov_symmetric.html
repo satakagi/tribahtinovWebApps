@@ -42,6 +42,7 @@ Revision history:
  Rev.S1:06/23/2018  Modified Revision for improvement of the sensitivity
         02/23/2020  Add explanation etc.
         03/30/2020  Asymmetric bug fix
+ Rev.7: 01/18/2021 Rounding edge option
 **/
 
 /**
@@ -82,6 +83,8 @@ var tri_angle = 10*Math.PI/180; // radians
 var upDownBoundaryStemRatio = 0.66; // The ratio of advance to the up side when creating a boundary stem. Since the lower side of the boundary sem works somewhat as upper slit, it is set larger than half.
 
 var equalizeArea = true;
+
+var roundEdge = false;
 
 var svg;
 
@@ -194,7 +197,7 @@ function buildMask(){
 **/
 
 function draw_slots_left(cr,grot){
-	var tri_mid_r =  -tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2 ;
+	var tri_mid_r =  -(roundEdge*tri_w+tri_stem_w)/2 + ( tri_out_r +  tri_in_r )/ 2 ;
 	cr.clearClipPath();
 	cr.push_group();
 	cr.setGlobalRotation(grot);
@@ -204,13 +207,13 @@ function draw_slots_left(cr,grot){
 	cr.set_source_rgba(0,0,0,1);
 
 
-	theta0 = Math.PI+(Math.atan2(tri_stem_w/2.0, tri_mid_r) - Math.PI/3.0);
-	theta1 = Math.PI+(-Math.atan2(tri_stem_w/2.0, tri_mid_r) + Math.PI/3.0);
+	theta0 = Math.PI+(Math.atan2((roundEdge*tri_w+tri_stem_w)/2.0, tri_mid_r) - Math.PI/3.0);
+	theta1 = Math.PI+(-Math.atan2((roundEdge*tri_w+tri_stem_w)/2.0, tri_mid_r) + Math.PI/3.0);
 	cr.arc(0,0, tri_mid_r, theta0, theta1);
 
-	theta0 = -Math.PI+(-Math.atan2(tri_stem_w/2.0, tri_in_r) + Math.PI/3.0);
-	theta1 = -Math.PI+(Math.atan2(tri_stem_w/2.0, tri_in_r) - Math.PI/3.0);
-	cr.arc_negative(0,0, tri_in_r, theta0, theta1);
+	theta0 = -Math.PI+(-Math.atan2((roundEdge*tri_w+tri_stem_w)/2.0, tri_in_r) + Math.PI/3.0);
+	theta1 = -Math.PI+(Math.atan2((roundEdge*tri_w+tri_stem_w)/2.0, tri_in_r) - Math.PI/3.0);
+	cr.arc_negative(0,0, tri_in_r + roundEdge*tri_w/2, theta0, theta1);
 	cr.setClipPath();
 //	cr.fill();
 //	cr.clearPath();
@@ -221,7 +224,11 @@ function draw_slots_left(cr,grot){
 //	y = -tri_out_r;
 	y = -tri_w/2 - spacing * Math.floor(tri_out_r/spacing);
 	while (y < tri_out_r ){
-		cr.rectangle(tri_outb_r, -y, -2*tri_outb_r, -tri_w);
+		if ( roundEdge ){
+			cr.roundedHorizontalRect(tri_outb_r,-y -tri_w/2,  -2*tri_outb_r , tri_w);
+		} else {
+			cr.rectangle(tri_outb_r, -y, -2*tri_outb_r, -tri_w);
+		}
 		y += spacing;
 	}
     cr.stroke();
@@ -244,19 +251,19 @@ function draw_slots_left(cr,grot){
 **/
 
 function draw_slots_right_up(cr,grot){
-	var tri_mid_r =  tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2;
+	var tri_mid_r =  (roundEdge*tri_w+tri_stem_w)/2 + ( tri_out_r +  tri_in_r )/ 2;
 	cr.clearClipPath();
 	
 	cr.push_group();
 	cr.setGlobalRotation(grot);
 	
     // make the mask
-	theta0 = Math.atan2(tri_stem_w/2.0, tri_out_r) - Math.PI/3.0;
-    theta1 = -(Math.atan2(tri_stem_w/2.0, tri_out_r) );
-    cr.arc(0,0, tri_out_r, theta0, theta1);
+	theta0 = Math.atan2((roundEdge*tri_w+tri_stem_w)/2.0, tri_out_r) - Math.PI/3.0;
+    theta1 = -(Math.atan2((roundEdge*tri_w+tri_stem_w)/2.0, tri_out_r) );
+    cr.arc(0,0, tri_out_r - roundEdge*tri_w/2, theta0, theta1);
 
-    theta0 = -(Math.atan2(tri_stem_w/2.0, tri_mid_r) );
-    theta1 = -(-Math.atan2(tri_stem_w/2.0, tri_mid_r) ) - Math.PI/3.0;
+    theta0 = -(Math.atan2((roundEdge*tri_w+tri_stem_w)/2.0, tri_mid_r) );
+    theta1 = -(-Math.atan2((roundEdge*tri_w+tri_stem_w)/2.0, tri_mid_r) ) - Math.PI/3.0;
     cr.arc_negative(0,0, tri_mid_r, theta0, theta1);
 
 //	cr.fill();
@@ -270,7 +277,11 @@ function draw_slots_right_up(cr,grot){
     
 	y =  tri_out_r;
 	while (y > - tri_out_r){
-		cr.rectangle(-1*INCH2PIXELS+16*INCH2PIXELS, -y-tri_stem_w, -16*INCH2PIXELS, -tri_w);
+		if ( roundEdge ){
+			cr.roundedHorizontalRect(-1*INCH2PIXELS+16*INCH2PIXELS,-y-tri_stem_w -tri_w/2,  -16*INCH2PIXELS , tri_w);
+		} else {
+			cr.rectangle(-1*INCH2PIXELS+16*INCH2PIXELS, -y-tri_stem_w, -16*INCH2PIXELS, -tri_w);
+		}
 		y -= spacing;
 	}
 
@@ -300,18 +311,18 @@ function draw_slots_right_up(cr,grot){
 **/
 
 function draw_slots_right_down(cr,grot){
-	var tri_mid_r =  tri_stem_w/2 + ( tri_out_r +  tri_in_r )/ 2;
+	var tri_mid_r =  (roundEdge*tri_w+tri_stem_w)/2 + ( tri_out_r +  tri_in_r )/ 2;
 	cr.clearClipPath();
     cr.push_group();
 	cr.setGlobalRotation(grot);
 
     // make the mask
-	theta0 = Math.atan2(tri_stem_w/2.0, tri_out_r) ;
-    theta1 = -(Math.atan2(tri_stem_w/2.0, tri_out_r) - Math.PI/3.0);
-    cr.arc(0,0, tri_out_r, theta0, theta1);
+	theta0 = Math.atan2((roundEdge*tri_w+tri_stem_w)/2.0, tri_out_r) ;
+    theta1 = -(Math.atan2((roundEdge*tri_w+tri_stem_w)/2.0, tri_out_r) - Math.PI/3.0);
+    cr.arc(0,0, tri_out_r - roundEdge*tri_w/2, theta0, theta1);
 
-    theta0 = -(Math.atan2(tri_stem_w/2.0, tri_mid_r) - Math.PI/3.0);
-    theta1 = -(-Math.atan2(tri_stem_w/2.0, tri_mid_r) );
+    theta0 = -(Math.atan2((roundEdge*tri_w+tri_stem_w)/2.0, tri_mid_r) - Math.PI/3.0);
+    theta1 = -(-Math.atan2((roundEdge*tri_w+tri_stem_w)/2.0, tri_mid_r) );
     cr.arc_negative(0,0, tri_mid_r, theta0, theta1);
 
 //	cr.fill();
@@ -325,7 +336,11 @@ function draw_slots_right_down(cr,grot){
     spacing = (tri_stem_w + tri_w);    
     y = -tri_out_r;
 	while (y < tri_out_r){
-		cr.rectangle(-tri_outb_r+2*tri_outb_r, -y, -2*tri_outb_r, -tri_w);
+		if ( roundEdge ){
+			cr.roundedHorizontalRect(-tri_outb_r+2*tri_outb_r,-y -tri_w/2,  -2*tri_outb_r , tri_w);
+		} else {
+			cr.rectangle(-tri_outb_r+2*tri_outb_r, -y, -2*tri_outb_r, -tri_w);
+		}
 		y += spacing;
 	}
     cr.stroke();
@@ -402,6 +417,13 @@ function svgContext(rootSvg){
 //		currentParent.appendChild(rect);
 	}
 
+	function roundedHorizontalRect(x,y, width, lw){
+		move_to(x,y);
+		line_to(x + width, y);
+		line_to(x , y - lw); // dummy...
+		stroke(lw/2);
+	}
+	
 	function checkPath(){
 		if (!inPath){
 			inPath = svgPath();
@@ -470,11 +492,11 @@ function svgContext(rootSvg){
 			inPath = null;
 		}
 	}
-	function stroke(){
+	function stroke(bw){
 		if (inPath){
 //			console.log("stroke:",inPath);
 			if ( clipPath ){
-				var cpe = inPath.getClippedPath(clipPath);
+				var cpe = inPath.getClippedPath(clipPath,bw);
 				if ( cpe.getAttribute("d")){
 					currentParent.appendChild(cpe);
 				}
@@ -553,7 +575,8 @@ function svgContext(rootSvg){
 		set_source_rgba:set_source_rgba,
 		set_source_rgb:set_source_rgb,
 		OPERATOR_DEST_IN:OPERATOR_DEST_IN,
-		OPERATOR_OVER:OPERATOR_OVER
+		OPERATOR_OVER:OPERATOR_OVER,
+		roundedHorizontalRect:roundedHorizontalRect
 	}
 	
 }
@@ -622,23 +645,97 @@ function svgPath(){
 		return(path);
 	}
 
-	function getClippedPath(clipCrds){
+	function getClippedPath(clipCrds,bufferWidth){
 		var srcCrds = getCoordinates();
+		var bufLine = false;
+		if ( srcCrds.length == 3 ){
+//			srcCrds.push([srcCrds[0][0],srcCrds[0][1]-20,true]);
+			srcCrds[2].push(true);
+			bufLine = true;
+		}
+		console.log("srcCrds:",srcCrds);
 //		var clippedCrds = clip(srcCrds,clipCrds);
 		var clippedCrds = clip(clipCrds,srcCrds);
+		console.log("clippedCrds:",clippedCrds);
 //		console.log("getClippedPath:",clippedCrds,srcCrds,clipCrds);
 		var cd ="";
-		for ( var i = 0 ; i < clippedCrds.length ; i++ ){
-			if ( i==0 ){
-				cd+="M";
-			} else {
-				cd+="L";
+		var cc = 0;
+		if ( bufLine==false ){
+			for ( var i = 0 ; i < clippedCrds.length ; i++ ){
+				if ( clippedCrds[i][2]){
+				} else {
+					if ( cc==0 ){
+						cd+="M";
+					} else {
+						cd+="L";
+					}
+					cd+=clippedCrds[i][0]+","+clippedCrds[i][1];
+					++cc;
+				}
 			}
-			cd+=clippedCrds[i][0]+","+clippedCrds[i][1];
-		}
-		cd+="Z";
-		if (  clippedCrds.length >1 ){
-			path.setAttribute("d",cd);
+			cd+="Z";
+			if (  clippedCrds.length >1 ){
+				path.setAttribute("d",cd);
+			}
+		} else {
+			if ( clippedCrds.length >1 ){
+				var points=[];
+				for ( var i = 0 ; i < clippedCrds.length ; i++ ){
+					if ( clippedCrds[i][2]){
+					} else {
+						points.push(clippedCrds[i]);
+					}
+				}
+				if ( points.length > 1 ){
+					console.log(points);
+					var bw = bufferWidth;
+					for ( var i = 0 ; i < points.length ; i = i + 2 ){
+						var p1 = points[i];
+						var p2 = points[i+1];
+						var sx,sy;
+						console.log(p1,p2);
+						var theta;
+						var rp = " 1 1 ";
+						if ( p1[0]>p2[0]  ){
+							var tp = [p1[0],p1[1]];
+							p1 = [p2[0],p2[1]];
+							p2 = tp;
+						}
+						if ( p1[0]-p2[0] != 0 ){
+							theta = Math.atan((p1[1]-p2[1])/(p1[0]-p2[0]));
+							sx = bw * Math.sin(theta);
+							sy = bw * Math.cos(theta);
+						} else {
+							theta = Math.PI / 2;
+							sx = bw;
+							sy = 0;
+						}
+						console.log("sx,sy:",sx,sy);
+						var p1a = [p1[0]-sx,p1[1]+sy];
+						var p1n = [p1[0]-sy,p1[1]-sx];
+						var p1b = [p1[0]+sx,p1[1]-sy];
+						
+						var p2b = [p2[0]-sx,p2[1]+sy];
+						var p2n = [p2[0]+sy,p2[1]+sx];
+						var p2a = [p2[0]+sx,p2[1]-sy];
+						
+						cd +="M"+p1a[0]+","+p1a[1] +
+						"A"+ bw + " " + bw + " " + theta * 180 / Math.PI + rp + 
+						p1b[0]+","+p1b[1]+"L"+p2a[0]+","+p2a[1]+
+						"A"+ bw + " " + bw + " " + theta * 180 / Math.PI + rp + 
+						p2b[0]+","+p2b[1]+"Z ";
+						
+
+						/**
+						cd +="M"+p1a[0]+","+p1a[1]+"L"+p1n[0]+","+p1n[1]+"L"+p1b[0]+","+p1b[1]+
+						"L"+p2a[0]+","+p2a[1]+"L"+p2n[0]+","+p2n[1]+"L"+p2b[0]+","+p2b[1]+"Z ";
+						**/
+						
+//						cd +="M"+p1a[0]+","+p1a[1]+"L"+p1b[0]+","+p1b[1]+"L"+p2a[0]+","+p2a[1]+"L"+p2b[0]+","+p2b[1]+"Z ";
+					}
+					path.setAttribute("d",cd);
+				}
+			}
 		}
 		return(path);
 	}
@@ -686,7 +783,11 @@ function svgPath(){
                     n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0],
                     n2 = s[0] * e[1] - s[1] * e[0], 
                     n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
-                return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3];
+            	if ( cp1[2] || cp2[2] ){
+	                return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3, true];
+            	} else {
+	                return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3];
+            	}
             };
             var outputList = subjectPolygon;
             cp1 = clipPolygon[clipPolygon.length-1];
@@ -701,7 +802,11 @@ function svgPath(){
                         if (!inside(s)) {
                             outputList.push(intersection());
                         }
-                        outputList.push(e);
+                    	if ( cp1[2] ){
+	                        outputList.push([e[0],e[1],true]);
+                    	} else {
+	                        outputList.push(e);
+                    	}
                     }
                     else if (inside(s)) {
                         outputList.push(intersection());
@@ -794,6 +899,12 @@ function updateMask(){
 		orderFactor = 3.0;
 	} else {
 		orderFactor = 1.0;
+	}
+	
+	if ( document.getElementById("roundE").checked ){
+		roundEdge = 1;
+	} else {
+		roundEdge = 0;
 	}
 	
 	var stemWselect = document.getElementById("stemW").selectedIndex;
@@ -1047,6 +1158,7 @@ Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
     
     <span id="inWt">inW:</span><input name="inW" id="inW" type="text" style="width:50px" value="5.99948" autocomplete="off" />
     <span id="outWt">outW:</span><input name="outW" id="outW" type="text" style="width:50px" value="11.1125" autocomplete="off" />
+    <input id="roundE" type="checkbox"  autocomplete="off" />:Rounding
     
     <br>
     <input type="button" value="Draw Tri-Bahtinov Mask" onclick="updateMask();" />
