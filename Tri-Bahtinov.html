@@ -40,6 +40,7 @@ Revision history:
  Rev.5: 07/18/2017  Selectable Bahtinov Factor
  Rev.6: 01/03/2018  Make changeable outer and inner support width
         03/23/2020  Extend Bahtinov Factor
+ Rev.7: 01/23/2021 Rounding edge option
 **/
 
 var svgNs = "http://www.w3.org/2000/svg";
@@ -65,6 +66,7 @@ var tri_w = 0.3071*INCH2PIXELS; // inches, width of each slit -> Equivalent to F
 // constants that the user does not change
 var tri_stem_w = 0.2362*INCH2PIXELS; // inches, width of each supporting stem
 var tri_stem_w0 = tri_stem_w;
+var tri_stem_w_slit;
 var tri_out_w = 0.4375*INCH2PIXELS; // inches, width of the outer support
 var tri_in_w = 0.2362*INCH2PIXELS; // inches, width of the inner support
 
@@ -75,6 +77,8 @@ var tri_angle = 10*Math.PI/180; // radians
 var upDownBoundaryStemRatio = 0.66; // The ratio of advance to the up side when creating a boundary stem. Since the lower side of the boundary sem works somewhat as upper slit, it is set larger than half.
 
 var equalizeArea = true;
+
+var roundEdge = 0;
 
 var svg;
 
@@ -115,6 +119,14 @@ function initParams(focal_length_mm, tri_outb_r_mm, tri_inb_r_mm , tri_out_w_mm 
 	
 	tri_in_r = tri_inb_r + tri_in_w;
 //	tri_in_r = tri_inb_r + tri_stem_w;
+
+	tri_stem_w_slit = tri_stem_w;
+
+	if ( roundEdge == 1 ){
+		tri_out_r -= tri_w/2;
+		tri_in_r += tri_w/2;
+		tri_stem_w += tri_w;
+	}
 
 }
 
@@ -219,11 +231,15 @@ function draw_slots_left(cr,grot){
 	cr.clearPath();
 
 	// start drawing the slots
-	spacing = (tri_stem_w + tri_w);
+	spacing = (tri_stem_w_slit + tri_w);
 
 	y = -tri_w/2.0;
 	while (y < tri_out_r ){
-		cr.rectangle(tri_outb_r, -y, -2*tri_outb_r, -tri_w);
+		if ( roundEdge ){
+			cr.roundedHorizontalRect(tri_outb_r,-y -tri_w/2,  -2*tri_outb_r , tri_w);
+		} else {
+			cr.rectangle(tri_outb_r, -y, -2*tri_outb_r, -tri_w);
+		}
 		y += spacing;
 	}
     cr.stroke();
@@ -258,7 +274,7 @@ function draw_slots_right_up(cr,grot){
 
 	var udbds = 0; // 5.29.2017 (boundary stem option for larger masks)
 	if ( upDownBoundaryStem ){
-		udbds = tri_stem_w * upDownBoundaryStemRatio;
+		udbds = tri_stem_w_slit * upDownBoundaryStemRatio;
 	}
 	
 	if ( equalizeArea ){
@@ -296,11 +312,15 @@ function draw_slots_right_up(cr,grot){
 
 	// start drawing the slots at 10 deg
 	cr.setRotate(-tri_angle); //TBD
-    spacing = (tri_stem_w + tri_w);
+    spacing = (tri_stem_w_slit + tri_w);
     
 	while (y < tri_out_r){
 		if ( equalizeArea || y > ((tri_out_r + tri_in_r)/2.0 - tri_w + udbds)) {
-			cr.rectangle(-1*INCH2PIXELS+16*INCH2PIXELS, -y, -16*INCH2PIXELS, -tri_w);
+			if ( roundEdge ){
+				cr.roundedHorizontalRect(-1*INCH2PIXELS+16*INCH2PIXELS,-y -tri_w/2,  -16*INCH2PIXELS , tri_w);
+			} else {
+				cr.rectangle(-1*INCH2PIXELS+16*INCH2PIXELS, -y, -16*INCH2PIXELS, -tri_w);
+			}
 		}
 		y += spacing;
 	}
@@ -308,12 +328,17 @@ function draw_slots_right_up(cr,grot){
     // draw only the 3 sides of the rectangle and leave the bottom undrawn
     // find the position of this last slot
 
-    cr.move_to(-tri_outb_r, -ylast + 0.1*tri_w); // to supress rounding error of clipping routine..
-    cr.line_to(-tri_outb_r, -ylast - tri_w);
-    cr.line_to(2*tri_outb_r, -ylast - tri_w);
-    cr.line_to(2*tri_outb_r, -ylast + 0.1*tri_w);
-    
-    cr.stroke();
+	if ( roundEdge ){
+		cr.roundedHorizontalRect(-1*INCH2PIXELS+16*INCH2PIXELS,-ylast -tri_w/2,  -16*INCH2PIXELS , tri_w);
+//			cr.roundedHorizontalRect(-tri_outb_r+2*tri_outb_r,-y -tri_w/2,  -2*tri_outb_r , tri_w);
+	} else {
+	    cr.move_to(-tri_outb_r, -ylast + 0.1*tri_w); // to supress rounding error of clipping routine..
+	    cr.line_to(-tri_outb_r, -ylast - tri_w);
+	    cr.line_to(2*tri_outb_r, -ylast - tri_w);
+	    cr.line_to(2*tri_outb_r, -ylast + 0.1*tri_w);
+	    
+	    cr.stroke();
+	}
       
 	
     cr.clearRotate();
@@ -348,7 +373,10 @@ function draw_slots_right_down(cr,grot){
 	
 	var udbds = 0; // 5.29.2017 (boundary stem option for larger masks)
 	if ( upDownBoundaryStem ){
-		udbds = tri_stem_w * (1.0 - upDownBoundaryStemRatio);
+//		udbds = (tri_stem_w_slit) * (1.0 - upDownBoundaryStemRatio);
+		udbds = (tri_stem_w) * (1.0 - upDownBoundaryStemRatio);
+	} else if (roundEdge){
+		udbds = -tri_stem_w_slit/2 ;
 	}
 	
 	var ylast;
@@ -398,10 +426,14 @@ function draw_slots_right_down(cr,grot){
 // start drawing slots at 10 deg
     cr.setRotate(tri_angle);
 
-    spacing = (tri_stem_w + tri_w);    
+    spacing = (tri_stem_w_slit + tri_w);    
     y = -tri_w/2.0;
 	while (y < tri_out_r){
-		cr.rectangle(-tri_outb_r+2*tri_outb_r, -y, -2*tri_outb_r, -tri_w);
+		if ( roundEdge ){
+			cr.roundedHorizontalRect(-tri_outb_r+2*tri_outb_r,-y -tri_w/2,  -2*tri_outb_r , tri_w);
+		} else {
+			cr.rectangle(-tri_outb_r+2*tri_outb_r, -y, -2*tri_outb_r, -tri_w);
+		}
 		y += spacing;
 	}
     cr.stroke();
@@ -478,6 +510,13 @@ function svgContext(rootSvg){
 //		currentParent.appendChild(rect);
 	}
 
+	function roundedHorizontalRect(x,y, width, lw){
+		move_to(x,y);
+		line_to(x + width, y);
+		line_to(x , y - lw); // dummy...
+		stroke(lw/2);
+	}
+	
 	function checkPath(){
 		if (!inPath){
 			inPath = svgPath();
@@ -546,11 +585,11 @@ function svgContext(rootSvg){
 			inPath = null;
 		}
 	}
-	function stroke(){
+	function stroke(bw){
 		if (inPath){
 //			console.log("stroke:",inPath);
 			if ( clipPath ){
-				var cpe = inPath.getClippedPath(clipPath);
+				var cpe = inPath.getClippedPath(clipPath,bw);
 				if ( cpe.getAttribute("d")){
 					currentParent.appendChild(cpe);
 				}
@@ -629,7 +668,8 @@ function svgContext(rootSvg){
 		set_source_rgba:set_source_rgba,
 		set_source_rgb:set_source_rgb,
 		OPERATOR_DEST_IN:OPERATOR_DEST_IN,
-		OPERATOR_OVER:OPERATOR_OVER
+		OPERATOR_OVER:OPERATOR_OVER,
+		roundedHorizontalRect:roundedHorizontalRect
 	}
 	
 }
@@ -698,23 +738,97 @@ function svgPath(){
 		return(path);
 	}
 
-	function getClippedPath(clipCrds){
+	function getClippedPath(clipCrds,bufferWidth){
 		var srcCrds = getCoordinates();
+		var bufLine = false;
+		if ( srcCrds.length == 3 ){
+//			srcCrds.push([srcCrds[0][0],srcCrds[0][1]-20,true]);
+			srcCrds[2].push(true);
+			bufLine = true;
+		}
+		console.log("srcCrds:",srcCrds);
 //		var clippedCrds = clip(srcCrds,clipCrds);
 		var clippedCrds = clip(clipCrds,srcCrds);
+		console.log("clippedCrds:",clippedCrds);
 //		console.log("getClippedPath:",clippedCrds,srcCrds,clipCrds);
 		var cd ="";
-		for ( var i = 0 ; i < clippedCrds.length ; i++ ){
-			if ( i==0 ){
-				cd+="M";
-			} else {
-				cd+="L";
+		var cc = 0;
+		if ( bufLine==false ){
+			for ( var i = 0 ; i < clippedCrds.length ; i++ ){
+				if ( clippedCrds[i][2]){
+				} else {
+					if ( cc==0 ){
+						cd+="M";
+					} else {
+						cd+="L";
+					}
+					cd+=clippedCrds[i][0]+","+clippedCrds[i][1];
+					++cc;
+				}
 			}
-			cd+=clippedCrds[i][0]+","+clippedCrds[i][1];
-		}
-		cd+="Z";
-		if (  clippedCrds.length >1 ){
-			path.setAttribute("d",cd);
+			cd+="Z";
+			if (  clippedCrds.length >1 ){
+				path.setAttribute("d",cd);
+			}
+		} else {
+			if ( clippedCrds.length >1 ){
+				var points=[];
+				for ( var i = 0 ; i < clippedCrds.length ; i++ ){
+					if ( clippedCrds[i][2]){
+					} else {
+						points.push(clippedCrds[i]);
+					}
+				}
+				if ( points.length > 1 ){
+					console.log(points);
+					var bw = bufferWidth;
+					for ( var i = 0 ; i < points.length ; i = i + 2 ){
+						var p1 = points[i];
+						var p2 = points[i+1];
+						var sx,sy;
+						console.log(p1,p2);
+						var theta;
+						var rp = " 1 1 ";
+						if ( p1[0]>p2[0]  ){
+							var tp = [p1[0],p1[1]];
+							p1 = [p2[0],p2[1]];
+							p2 = tp;
+						}
+						if ( p1[0]-p2[0] != 0 ){
+							theta = Math.atan((p1[1]-p2[1])/(p1[0]-p2[0]));
+							sx = bw * Math.sin(theta);
+							sy = bw * Math.cos(theta);
+						} else {
+							theta = Math.PI / 2;
+							sx = bw;
+							sy = 0;
+						}
+						console.log("sx,sy:",sx,sy);
+						var p1a = [p1[0]-sx,p1[1]+sy];
+						var p1n = [p1[0]-sy,p1[1]-sx];
+						var p1b = [p1[0]+sx,p1[1]-sy];
+						
+						var p2b = [p2[0]-sx,p2[1]+sy];
+						var p2n = [p2[0]+sy,p2[1]+sx];
+						var p2a = [p2[0]+sx,p2[1]-sy];
+						
+						cd +="M"+p1a[0]+","+p1a[1] +
+						"A"+ bw + " " + bw + " " + theta * 180 / Math.PI + rp + 
+						p1b[0]+","+p1b[1]+"L"+p2a[0]+","+p2a[1]+
+						"A"+ bw + " " + bw + " " + theta * 180 / Math.PI + rp + 
+						p2b[0]+","+p2b[1]+"Z ";
+						
+
+						/**
+						cd +="M"+p1a[0]+","+p1a[1]+"L"+p1n[0]+","+p1n[1]+"L"+p1b[0]+","+p1b[1]+
+						"L"+p2a[0]+","+p2a[1]+"L"+p2n[0]+","+p2n[1]+"L"+p2b[0]+","+p2b[1]+"Z ";
+						**/
+						
+//						cd +="M"+p1a[0]+","+p1a[1]+"L"+p1b[0]+","+p1b[1]+"L"+p2a[0]+","+p2a[1]+"L"+p2b[0]+","+p2b[1]+"Z ";
+					}
+					path.setAttribute("d",cd);
+				}
+			}
 		}
 		return(path);
 	}
@@ -762,7 +876,11 @@ function svgPath(){
                     n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0],
                     n2 = s[0] * e[1] - s[1] * e[0], 
                     n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
-                return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3];
+            	if ( cp1[2] || cp2[2] ){
+	                return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3, true];
+            	} else {
+	                return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3];
+            	}
             };
             var outputList = subjectPolygon;
             cp1 = clipPolygon[clipPolygon.length-1];
@@ -777,7 +895,11 @@ function svgPath(){
                         if (!inside(s)) {
                             outputList.push(intersection());
                         }
-                        outputList.push(e);
+                    	if ( cp1[2] ){
+	                        outputList.push([e[0],e[1],true]);
+                    	} else {
+	                        outputList.push(e);
+                    	}
                     }
                     else if (inside(s)) {
                         outputList.push(intersection());
@@ -870,6 +992,12 @@ function updateMask(){
 		orderFactor = 3.0;
 	} else {
 		orderFactor = 1.0;
+	}
+	
+	if ( document.getElementById("roundE").checked ){
+		roundEdge = 1;
+	} else {
+		roundEdge = 0;
 	}
 	
 	var stemWselect = document.getElementById("stemW").selectedIndex;
@@ -1100,6 +1228,7 @@ Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
     
     <span id="inWt">inW:</span><input name="inW" id="inW" type="text" style="width:50px" value="5.99948" autocomplete="off" />
     <span id="outWt">outW:</span><input name="outW" id="outW" type="text" style="width:50px" value="11.1125" autocomplete="off" />
+     <input id="roundE" type="checkbox"  autocomplete="off" />:Rounding
     
     <br>
     <input type="button" value="Draw Tri-Bahtinov Mask" onclick="updateMask();" />
