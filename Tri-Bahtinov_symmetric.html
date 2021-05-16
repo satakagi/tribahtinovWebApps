@@ -148,6 +148,8 @@ onload=function(){
 function buildMask(){
 	
 	svg=document.getElementById("tb");
+	var canvasWH = Math.floor(tri_outb_r*1.1)*2;
+	svg.setAttribute("viewBox", (-canvasWH/2)+","+(-canvasWH/2)+","+canvasWH+","+canvasWH);
 	while (svg.firstChild) svg.removeChild(svg.firstChild);
 
 //	console.log("onload:",document.getElementById("tb"));
