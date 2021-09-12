@@ -30,6 +30,7 @@
 Revision history:
         12/15/2020  1st rev
         01/18/2021  rounding edge option
+        08/28/2021  hairline option
 **/
 
 /**
@@ -91,7 +92,7 @@ function initParams(focal_length_mm, tri_outb_r_mm, tri_inb_r_mm , tri_out_w_mm 
 	
 	tri_out_r = tri_outb_r - tri_out_w;
 	
-	if ( stemWratio > 0 ){ // Hmmm. global var...
+	if ( stemWratio >= 0 ){ // Hmmm. global var...
 //		tri_stem_w = tri_w / stemWratio;
 //		tri_w_stem_w = tri_stem_w * ( 1 + stemWratio );
 		tri_stem_w = tri_w_stem_w / ( 1 + stemWratio );
@@ -409,18 +410,26 @@ function svgContext(rootSvg){
 	}
 	
 	function rectangle(x,y,width,height){
-		move_to(x,y);
-		line_to((x+width),y);
-		line_to((x+width),(y+height));
-		line_to(x,(y+height));
-		stroke();
+		if ( height==0){
+			roundedHorizontalRect(x,y, width, 0);
+		}else{
+			move_to(x,y);
+			line_to((x+width),y);
+			line_to((x+width),(y+height));
+			line_to(x,(y+height));
+			stroke();
+		}
 //		currentParent.appendChild(rect);
 	}
 
 	function roundedHorizontalRect(x,y, width, lw){
+		var dw=lw;
+		if ( lw==0){
+			dw=1;
+		}
 		move_to(x,y);
 		line_to(x + width, y);
-		line_to(x , y - lw); // dummy...
+		line_to(x , y - dw); // dummy...
 		stroke(lw/2);
 	}
 	
@@ -719,11 +728,16 @@ function svgPath(){
 						var p2n = [p2[0]+sy,p2[1]+sx];
 						var p2a = [p2[0]+sx,p2[1]-sy];
 						
-						cd +="M"+p1a[0]+","+p1a[1] +
-						"A"+ bw + " " + bw + " " + theta * 180 / Math.PI + rp + 
-						p1b[0]+","+p1b[1]+"L"+p2a[0]+","+p2a[1]+
-						"A"+ bw + " " + bw + " " + theta * 180 / Math.PI + rp + 
-						p2b[0]+","+p2b[1]+"Z ";
+						if ( bw > 0 ){
+							cd +="M"+p1a[0]+","+p1a[1] +
+							"A"+ bw + " " + bw + " " + theta * 180 / Math.PI + rp + 
+							p1b[0]+","+p1b[1]+"L"+p2a[0]+","+p2a[1]+
+							"A"+ bw + " " + bw + " " + theta * 180 / Math.PI + rp + 
+							p2b[0]+","+p2b[1]+"Z ";
+						}else{
+							cd +="M"+p1a[0]+","+p1a[1] +
+							"L"+p2a[0]+","+p2a[1]+"Z ";
+						}
 						
 
 						/**
@@ -1115,6 +1129,7 @@ Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
     </span>
     
 	<select id="stemW" autocomplete="off">
+	 <option value="0"   >Hairline</option>
 	 <option value="-1"   >StemWidth = 0.2362in</option>
 	 <option value="2"    >StemWidth : SlitWidth = 1:2.0</option>
 	 <option value="1.8"  >StemWidth : SlitWidth = 1:1.8</option>
