@@ -23,7 +23,7 @@ Since AstroJargon's site seems to have disappeared, here is a webApps version of
 * Cutting Plotters
   * Same as above
 * 3D Printers
-  * The output data is an outline data, so you need to convert it to polygon data first using [Inkscape](https://inkscape.org/) etc. [See this video](reports/MakeFilledBahtinovMaskPatternByInkscape.mp4) for the procedure.
+  * The output data is an outline data, so you need to convert it to polygon data using [Inkscape](https://inkscape.org/) etc. [See this video](reports/MakeFilledBahtinovMaskPatternByInkscape.mp4) for the procedure.
   * Next, we need to convert this polygon data (.svg file) into three-dimensional data (.stl file) with thickness. You can use free and easy to use services such as [SVG2STL](http://svg2stl.com/). For other options, you may find [this article](https://all3dp.com/2/svg-to-stl-how-to-convert-svgs-into-3d-printable-stls/) helpful.
 
 ## Reports
