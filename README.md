@@ -19,7 +19,7 @@ Since AstroJargon's site seems to have disappeared, here is a webApps version of
 
 ## How to make mask {#tomake}
 * Laser Cutters
-  * In most cases, .svg files can be used as input data for these machines.
+  * In most cases, .svg files can be used as input data for these machines. If not, use [Inkscape](https://inkscape.org/) etc. to convert it to a format that can be read by that machine, such as .dxf.
 * Cutting Plotters
   * Same as above
 * 3D Printers
