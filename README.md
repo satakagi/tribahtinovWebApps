@@ -17,6 +17,15 @@ Since AstroJargon's site seems to have disappeared, here is a webApps version of
 
 * **[Bahtinov mask generator webApps](https://satakagi.github.io/tribahtinovWebApps/Bahtinov.html)**
 
+## How to make mask
+* Laser Cutters
+  * In most cases, .svg files can be used as input data for these machines.
+* Cutting Plotters
+  * Same as above
+* 3D Printers
+  * The output data is an outline data, so you need to convert it to polygon data first using [Inkscape](https://inkscape.org/) etc. [See this video](reports/MakeFilledBahtinovMaskPatternByInkscape.mp4) for the procedure.
+  * Next, it needs to be converted into three-dimensional data (.stl file) with thickness. You can use free and easy to use services such as [SVG2STL](http://svg2stl.com/). For other options, you may find [this article](https://all3dp.com/2/svg-to-stl-how-to-convert-svgs-into-3d-printable-stls/) helpful.
+
 ## Reports
 * [Improve Sensitivity of Tri-Bahtinov Mask](reports/improveSensitivity.html)
 
