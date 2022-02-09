@@ -146,6 +146,8 @@ onload=function(){
 function buildMask(){
 	
 	svg=document.getElementById("tb");
+	var canvasWH = Math.floor(tri_outb_r*1.1)*2;
+	svg.setAttribute("viewBox", (-canvasWH/2)+","+(-canvasWH/2)+","+canvasWH+","+canvasWH);
 	while (svg.firstChild) svg.removeChild(svg.firstChild);
 
 //	console.log("onload:",document.getElementById("tb"));
@@ -489,10 +491,10 @@ function svgPath(){
 			srcCrds[2].push(true);
 			bufLine = true;
 		}
-		console.log("srcCrds:",srcCrds);
+		//console.log("srcCrds:",srcCrds);
 //		var clippedCrds = clip(srcCrds,clipCrds);
 		var clippedCrds = clip(clipCrds,srcCrds);
-		console.log("clippedCrds:",clippedCrds);
+		//console.log("clippedCrds:",clippedCrds);
 //		console.log("getClippedPath:",clippedCrds,srcCrds,clipCrds);
 		var cd ="";
 		var cc = 0;
@@ -523,13 +525,13 @@ function svgPath(){
 					}
 				}
 				if ( points.length > 1 ){
-					console.log(points);
+					//console.log(points);
 					var bw = bufferWidth;
 					for ( var i = 0 ; i < points.length ; i = i + 2 ){
 						var p1 = points[i];
 						var p2 = points[i+1];
 						var sx,sy;
-						console.log(p1,p2);
+						//console.log(p1,p2);
 						var theta;
 						var rp = " 1 1 ";
 						if ( p1[0]>p2[0]  ){
@@ -546,7 +548,7 @@ function svgPath(){
 							sx = bw;
 							sy = 0;
 						}
-						console.log("sx,sy:",sx,sy);
+						//console.log("sx,sy:",sx,sy);
 						var p1a = [p1[0]-sx,p1[1]+sy];
 						var p1n = [p1[0]-sy,p1[1]-sx];
 						var p1b = [p1[0]+sx,p1[1]-sy];
