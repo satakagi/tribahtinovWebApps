@@ -9,7 +9,7 @@ This is webApps port of [cytan's tri-bahtinov mask generator](https://github.com
 In addition, a symmetric version with improved sensitivity has been added.
 
 * **[cytan's original tri-bahtinov mask pattern](https://satakagi.github.io/tribahtinovWebApps/Tri-Bahtinov.html)**
-  * [Tri-Bahtinov_cover](https://satakagi.github.io/tribahtinovWebApps/Tri-Bahtinov-original_cover.html)
+  * [its_cover](https://satakagi.github.io/tribahtinovWebApps/Tri-Bahtinov-original_cover.html)
 * **[Improved sensitivity version](https://satakagi.github.io/tribahtinovWebApps/Tri-Bahtinov_symmetric.html)**
   * **[Tri-Bahtinov_cover for improved sensitivity version](https://satakagi.github.io/tribahtinovWebApps/Tri-Bahtinov_cover.html)** (contributed by jordiblasco [How to use](https://www.cloudynights.com/topic/536410-a-tri-bahtinov-mask-for-sct-collimation-and-focusing/?p=10370496))
 
