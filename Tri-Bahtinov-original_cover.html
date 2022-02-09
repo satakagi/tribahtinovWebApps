@@ -1,0 +1,982 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tri-Bahtinov Mask Cover Drawings generator webApps</title>
+</head>
+<script>
+
+/**
+	Tri-Bahtinov Mask Cover Drawings generator webApps
+	Copyright (C) 2018-2017  Satoru Takagi
+    Copyright (C) 2016  C.Y. Tan
+	
+	
+    Ported from generate.py 
+    Copyright (C) 2016  C.Y. Tan
+    https://github.com/cytan299/tribahtinov
+
+
+    This software is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    generate.py is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with derot.  If not, see <http://www.gnu.org/licenses/>.
+**/
+
+/**
+Revision history:
+ Rev.1: First draft port from original generate.py. Add boundary stem option.
+ Rev.2: 06/14/2017 Add a function that calculates the boundary line starting point so that the areas of right upper slits and lower slits are equal. Add slit:stem ratio option. Mount holes.
+ Rev.3: 06/23/2017  Fix a issue about slit stem computation. Add 3rd order spectrum option.
+ Rev.4: 06/29/2017  Add download button
+ Rev.5: 07/18/2017  Selectable Bahtinov Factor
+ Rev.6: 01/03/2018  Make changeable outer and inner support width
+        03/23/2020  Extend Bahtinov Factor
+ Rev.7: 01/18/2021 Rounding edge option
+**/
+
+var svgNs = "http://www.w3.org/2000/svg";
+
+var INCH2PIXELS = 72; //convert 1 inch to pixels
+var BAHTINOV_FACTOR = 150; // will be changed by select
+
+
+var PAPER_MAX_X = 11*INCH2PIXELS;
+var PAPER_MAX_Y = 11*INCH2PIXELS;
+
+// Tri-Bahtinov parameters that generates my 8" mask
+var focal_length;
+
+var tri_outb_r = 4.4375*INCH2PIXELS; // inches, outer boundary radius 
+var tri_inb_r = 1.4375*INCH2PIXELS;  // inches, inner boundary radius
+
+var tri_out_r = 4.00*INCH2PIXELS; // inches, tribahtinov mask outer radius
+var tri_in_r = 1.6737*INCH2PIXELS; // inches, tribahtinov mask inner radius
+
+var tri_w = 0.3071*INCH2PIXELS; // inches, width of each slit -> Equivalent to F.L. 1170.051mm B.F. 150
+
+// constants that the user does not change
+var tri_stem_w = 0.2362*INCH2PIXELS; // inches, width of each supporting stem
+var tri_stem_w0 = tri_stem_w;
+var tri_stem_w_slit;
+var tri_out_w = 0.4375*INCH2PIXELS; // inches, width of the outer support
+var tri_in_w = 0.2362*INCH2PIXELS; // inches, width of the inner support
+
+var tri_mount_hole_r = 0.075*INCH2PIXELS; // mounting hole size
+
+var tri_angle = 10*Math.PI/180; // radians
+
+var upDownBoundaryStemRatio = 0.66; // The ratio of advance to the up side when creating a boundary stem. Since the lower side of the boundary sem works somewhat as upper slit, it is set larger than half.
+
+var equalizeArea = true;
+
+var roundEdge = 0;
+
+var svg;
+
+function initParams(focal_length_mm, tri_outb_r_mm, tri_inb_r_mm , tri_out_w_mm , tri_in_w_mm ){
+	focal_length = focal_length_mm/toMm*INCH2PIXELS;
+//	tri_w = orderFactor * focal_length/BAHTINOV_FACTOR;
+	var tri_w_stem_w = orderFactor * focal_length/BAHTINOV_FACTOR;
+	tri_outb_r = tri_outb_r_mm/toMm*INCH2PIXELS;
+	tri_inb_r = tri_inb_r_mm/toMm*INCH2PIXELS;
+	
+	if ( tri_out_w_mm && tri_in_w_mm ){
+		tri_out_w = tri_out_w_mm/toMm*INCH2PIXELS;
+		tri_in_w = tri_in_w_mm/toMm*INCH2PIXELS;
+	}
+	
+	console.log("tri_out_w:",tri_out_w," tri_in_w:",tri_in_w);
+	
+	tri_out_r = tri_outb_r - tri_out_w;
+	
+	if ( stemWratio > 0 ){ // Hmmm. global var...
+		tri_stem_w = tri_w_stem_w / ( 1 + stemWratio );
+		tri_w = tri_stem_w * stemWratio
+	} else {
+		if ( tri_w_stem_w - tri_stem_w0 > tri_stem_w0 * 0.5 ){
+			tri_stem_w = tri_stem_w0;
+			tri_w = tri_w_stem_w - tri_stem_w;
+		} else {
+			tri_stem_w = 2 * tri_w_stem_w / 3;
+			tri_w = tri_w_stem_w / 3;
+		}
+		
+	}
+	
+//	console.log("tri_w_stem_w:",tri_w_stem_w," tri_w:",tri_w," tri_stem_w:",tri_stem_w," orderFactor:",orderFactor," focal_length:",focal_length," BAHTINOV_FACTOR:",BAHTINOV_FACTOR);
+	
+	tri_in_r = tri_inb_r + tri_in_w;
+
+	tri_stem_w_slit = tri_stem_w;
+
+	if ( roundEdge == 1 ){
+		tri_out_r -= tri_w/2;
+		tri_in_r += tri_w/2;
+		tri_stem_w += tri_w;
+	}
+
+}
+
+function initParamsInch(focal_length_mm, tri_outb_r, tri_inb_r){
+	initParams(focal_length_mm, tri_outb_r*toMm, tri_inb_r*toMm);
+}
+
+
+onload=function(){
+	tb1 = document.getElementById("textBox1");
+	tb2 = document.getElementById("textBox2");
+	tb3 = document.getElementById("textBox3");
+	outW = document.getElementById("outW");
+	inW = document.getElementById("inW");
+//	initParamsInch(1170.051,4.4375,1.4375);
+//	buildMask();
+	changeUnit();
+	updateMask();
+}
+	
+function buildMask(){
+	
+	svg=document.getElementById("tb");
+	while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+//	console.log("onload:",document.getElementById("tb"));
+	cr = svgContext(svg);
+	draw_slots_left(cr,0);
+	if ( buildMountHoles ){
+		draw_mounting_holes(cr,0);
+	}
+
+	cr.clearClipPath();
+	cr.push_group();
+	cr.setGlobalRotation(0);
+	
+	cr.arc(0,0, tri_outb_r, 0,2*Math.PI);
+	cr.stroke();
+	cr.arc(0,0, tri_inb_r,  0,2*Math.PI);
+	cr.stroke();
+	cr.pop_group_to_source();
+
+	document.getElementById("svgSrc").value=serializeToString(svg);
+}
+
+/**
+########################################################
+# draw_slots_left(   - draws the slots on the left
+#               cr   - to this context
+#               )
+########################################################
+**/
+
+function draw_slots_left(cr,grot){
+	var tri_stem_w=0;
+	cr.clearClipPath();
+	cr.push_group();
+	cr.setGlobalRotation(grot);
+    // make the mask
+	
+	cr.set_source_rgba(0,0,0,1);
+
+	theta = Math.atan2((tri_stem_w)/2.0, tri_in_r) + Math.PI/6.0;
+	cr.move_to(-(tri_in_r)*Math.cos(theta), -(tri_in_r)*Math.sin(theta));
+	theta = Math.atan2((tri_stem_w)/2.0, tri_out_r) + Math.PI/6.0;
+	cr.line_to(-(tri_out_r)*Math.cos(theta), -(tri_out_r)*Math.sin(theta));
+
+	theta0 = Math.PI+(Math.atan2((tri_stem_w)/2.0, tri_in_r) + Math.PI/6.0);
+	theta1 = -(Math.atan2((tri_stem_w)/2.0, tri_out_r) + Math.PI/6.0);
+	cr.arc(0,0, tri_out_r, theta0, theta1);
+
+    theta = Math.atan2((tri_stem_w)/2.0, tri_in_r) + Math.PI/6.0;
+    cr.line_to(tri_in_r*Math.cos(theta), -tri_in_r*Math.sin(theta));
+
+    theta0 = -(Math.atan2((tri_stem_w)/2.0, tri_in_r) + Math.PI/6);
+	theta1 = -Math.PI+(Math.atan2((tri_stem_w)/2.0, tri_in_r) + Math.PI/6.0);
+	cr.arc_negative(0,0, tri_in_r, theta0, theta1);
+
+    cr.stroke();
+
+	cr.pop_group_to_source();
+	cr.paint();
+
+	return(cr);
+}
+
+
+function svgContext(rootSvg){
+	
+	var currentParent=rootSvg;
+
+	var inPath = null;
+
+	var currentStroke;
+	var currentFill;
+	var currentOpacity;
+	var currentStrokeWidth;
+
+	var globalRotation=0;
+	var rotation = 0;
+	
+	function setGlobalRotation(grot){
+		globalRotation = grot;
+	}
+
+	function setRotate(angle){
+		rotation = angle;
+	}
+	function clearRotate(){
+		rotation = 0;
+	}
+	
+	function push_group(){
+		var g = document.createElementNS(svgNs,"g");
+		g.setAttribute("fill","none");
+		g.setAttribute("stroke","blue");
+		g.setAttribute("stroke-width","0.5");
+		currentParent.appendChild(g);
+		currentParent = g;
+	}
+	
+	function rectangle(x,y,width,height){
+		move_to(x,y);
+		line_to((x+width),y);
+		line_to((x+width),(y+height));
+		line_to(x,(y+height));
+		stroke();
+//		currentParent.appendChild(rect);
+	}
+
+	function roundedHorizontalRect(x,y, width, lw){
+		move_to(x,y);
+		line_to(x + width, y);
+		line_to(x , y - lw); // dummy...
+		stroke(0);
+	}
+	
+	function checkPath(){
+		if (!inPath){
+			inPath = svgPath();
+		}
+//		console.log("checkPath:",inPath);
+	}
+	
+
+	function transform(x,y){
+		xr = x* Math.cos(rotation+globalRotation) - y* Math.sin(rotation+globalRotation);
+		yr = x* Math.sin(rotation+globalRotation) + y* Math.cos(rotation+globalRotation);
+		return [xr,yr];
+	}
+	
+	function move_to(x,y){
+		var pos = transform(x,y);
+		checkPath();
+		inPath.move_to(pos[0],pos[1]);
+	}
+	function line_to(x,y){
+		var pos = transform(x,y);
+		checkPath();
+		inPath.line_to(pos[0],pos[1]);
+	}
+	
+	function arc(x,y,r,t0,t1,resolution){
+		var pos = transform(x,y);
+		checkPath();
+		inPath.arc(pos[0],pos[1],r,t0+rotation+globalRotation,t1+rotation+globalRotation,false,resolution);
+	}
+	
+	function arc_negative(x,y,r,t0,t1){
+		var pos = transform(x,y);
+		checkPath();
+		inPath.arc_negative(pos[0],pos[1],r,t0+rotation+globalRotation,t1+rotation+globalRotation,true);
+	}
+	function pop_group_to_source(){
+//		console.log("pop_gr",currentParent);
+//		currentParent = currentParent.parentNode();
+		currentParent = rootSvg;
+	}
+	function paint(){ // TBD ?????
+		if (inPath){
+			inPath.closePath();
+			currentParent.appendChild(inPath.getPath());
+			inPath = null;
+		}
+	}
+
+	function clearPath(){
+			inPath = null;
+	}
+	
+	function fill(){
+		if (inPath){
+			inPath.closePath();
+//			console.log("fill:",inPath);
+			if ( clipPath ){
+				var cpe = inPath.getClippedPath(clipPath);
+				if ( cpe.getAttribute("d")){
+					currentParent.appendChild(cpe);
+				}
+			} else {
+				currentParent.appendChild(inPath.getPath());
+			}
+			inPath = null;
+		}
+	}
+	function stroke(bw){
+		if (inPath){
+//			console.log("stroke:",inPath);
+			if ( clipPath ){
+				var cpe = inPath.getClippedPath(clipPath,bw);
+				if ( cpe.getAttribute("d")){
+					currentParent.appendChild(cpe);
+				}
+			} else {
+				currentParent.appendChild(inPath.getPath());
+			}
+			inPath = null;
+		}
+	}
+	
+	function set_operator(op){ // TBD
+	}
+	
+	function set_source_rgb(r,g,b,a){
+		set_source_rgba(r,g,b,1);
+	}
+	
+	function set_source_rgba(r,g,b,a){
+		currnetFill = "#"+(r+256).toString(16).substring(1)+(g+256).toString(16).substring(1)+(b+256).toString(16).substring(1);
+		currentStroke = currnetFill;
+		currentOpacity = a;
+	}
+
+	function setRGBA(elem){ // TBD
+		elem.setAttribute("opacity",currentOpacity);
+		elem.setAttribute("fill",currentFill);
+		elem.setAttribute("stroke",currentStroke);
+	}
+
+	var OPERATOR_DEST_IN = 1;
+	var OPERATOR_OVER = 2;
+
+	var clipPath=null;
+	
+	function setClipPath(){
+		if ( inPath ){
+			clipPath = inPath.getCoordinates();
+//			console.log(polyCrdStr(clipPath));
+		}
+	}
+	function clearClipPath(){
+		clipPath = null;
+	}
+
+	function polyCrdStr(poly){
+		var str ="[";
+		for ( var i = 0 ; i < poly.length ; i++){
+			str +="["+(poly[i][0]+300)+","+(poly[i][1]+300)+"]";
+			if ( i < poly.length -1 ){
+				str+=",";
+			} else {
+				str+="]";
+			}
+		}
+		return(str);
+	}
+	
+	return{
+		setGlobalRotation:setGlobalRotation,
+		setRotate:setRotate,
+		clearRotate:clearRotate,
+		clearPath:clearPath,
+		clearClipPath:clearClipPath,
+		setClipPath:setClipPath,
+		push_group:push_group,
+		rectangle:rectangle,
+		move_to:move_to,
+		line_to:line_to,
+		arc:arc,
+		arc_negative:arc_negative,
+		pop_group_to_source:pop_group_to_source,
+		paint:paint,
+		stroke:stroke,
+		fill:fill,
+		set_operator:set_operator,
+		set_source_rgba:set_source_rgba,
+		set_source_rgb:set_source_rgb,
+		OPERATOR_DEST_IN:OPERATOR_DEST_IN,
+		OPERATOR_OVER:OPERATOR_OVER,
+		roundedHorizontalRect:roundedHorizontalRect
+	}
+	
+}
+
+
+
+function svgPath(){
+	var path = document.createElementNS(svgNs,"path");
+	
+	var d="";
+	
+	function move_to(x,y){
+		d+="M" + x + "," + y ;
+	}
+	function line_to(x,y){
+		d+="L" + x + "," + y ;
+	}
+	function closePath(){
+		d+="Z";
+	}
+
+	var arcRes = 2*Math.PI / 360;
+	function arc(cx,cy,r,t0,t1,ccw,resolution){
+		var arcResolution = arcRes;
+		if ( resolution ){
+			arcResolution = 2*Math.PI / Math.ceil(resolution);
+		}
+		if (t0 === t1) {
+			return;
+		}
+		if ( ccw ){
+			if(t0 < t1){
+				t0 += 2 * Math.PI;
+			}
+			for ( var t = t0 ; t > t1 ; t-= arcResolution ){
+				if ( d==""){
+					d+="M";
+				} else {
+					d+="L";
+				}
+				d+=(r * Math.cos(t) + cx) +","+ (r * Math.sin(t) + cy) ;
+			}
+			d+="L"+ (r * Math.cos(t1) + cx) +","+ (r * Math.sin(t1) + cy) ;
+		} else {
+			if(t0 > t1){
+				t1 += 2 * Math.PI;
+			}
+			for ( var t = t0 ; t < t1 ; t+= arcResolution ){
+				if ( d==""){
+					d+="M";
+				} else {
+					d+="L";
+				}
+				d+=(r * Math.cos(t) + cx) +","+ (r * Math.sin(t) + cy) ;
+			}
+			d+="L"+ (r * Math.cos(t1) + cx) +","+ (r * Math.sin(t1) + cy) ;
+		}
+//		console.log("called arc:",d);
+	}
+	
+	function arc_negative(x,y,r,t0,t1){
+		arc(x,y,r,t0,t1,true);
+	}
+	function getPath(){
+		path.setAttribute("d",d);
+		return(path);
+	}
+
+	function getClippedPath(clipCrds,bufferWidth){
+		var srcCrds = getCoordinates();
+		var bufLine = false;
+		if ( srcCrds.length == 3 ){
+//			srcCrds.push([srcCrds[0][0],srcCrds[0][1]-20,true]);
+			srcCrds[2].push(true);
+			bufLine = true;
+		}
+		console.log("srcCrds:",srcCrds);
+//		var clippedCrds = clip(srcCrds,clipCrds);
+		var clippedCrds = clip(clipCrds,srcCrds);
+		console.log("clippedCrds:",clippedCrds);
+//		console.log("getClippedPath:",clippedCrds,srcCrds,clipCrds);
+		var cd ="";
+		var cc = 0;
+		if ( bufLine==false ){
+			for ( var i = 0 ; i < clippedCrds.length ; i++ ){
+				if ( clippedCrds[i][2]){
+				} else {
+					if ( cc==0 ){
+						cd+="M";
+					} else {
+						cd+="L";
+					}
+					cd+=clippedCrds[i][0]+","+clippedCrds[i][1];
+					++cc;
+				}
+			}
+			cd+="Z";
+			if (  clippedCrds.length >1 ){
+				path.setAttribute("d",cd);
+			}
+		} else {
+			if ( clippedCrds.length >1 ){
+				var points=[];
+				for ( var i = 0 ; i < clippedCrds.length ; i++ ){
+					if ( clippedCrds[i][2]){
+					} else {
+						points.push(clippedCrds[i]);
+					}
+				}
+				if ( points.length > 1 ){
+					console.log(points);
+					var bw = bufferWidth;
+					for ( var i = 0 ; i < points.length ; i = i + 2 ){
+						var p1 = points[i];
+						var p2 = points[i+1];
+						var sx,sy;
+						console.log(p1,p2);
+						var theta;
+						var rp = " 1 1 ";
+						if ( p1[0]>p2[0]  ){
+							var tp = [p1[0],p1[1]];
+							p1 = [p2[0],p2[1]];
+							p2 = tp;
+						}
+						if ( p1[0]-p2[0] != 0 ){
+							theta = Math.atan((p1[1]-p2[1])/(p1[0]-p2[0]));
+							sx = bw * Math.sin(theta);
+							sy = bw * Math.cos(theta);
+						} else {
+							theta = Math.PI / 2;
+							sx = bw;
+							sy = 0;
+						}
+						console.log("sx,sy:",sx,sy);
+						var p1a = [p1[0]-sx,p1[1]+sy];
+						var p1n = [p1[0]-sy,p1[1]-sx];
+						var p1b = [p1[0]+sx,p1[1]-sy];
+						
+						var p2b = [p2[0]-sx,p2[1]+sy];
+						var p2n = [p2[0]+sy,p2[1]+sx];
+						var p2a = [p2[0]+sx,p2[1]-sy];
+						
+						cd +="M"+p1a[0]+","+p1a[1] +
+						"A"+ bw + " " + bw + " " + theta * 180 / Math.PI + rp + 
+						p1b[0]+","+p1b[1]+"L"+p2a[0]+","+p2a[1]+
+						"A"+ bw + " " + bw + " " + theta * 180 / Math.PI + rp + 
+						p2b[0]+","+p2b[1]+"Z ";
+						
+
+						/**
+						cd +="M"+p1a[0]+","+p1a[1]+"L"+p1n[0]+","+p1n[1]+"L"+p1b[0]+","+p1b[1]+
+						"L"+p2a[0]+","+p2a[1]+"L"+p2n[0]+","+p2n[1]+"L"+p2b[0]+","+p2b[1]+"Z ";
+						**/
+						
+//						cd +="M"+p1a[0]+","+p1a[1]+"L"+p1b[0]+","+p1b[1]+"L"+p2a[0]+","+p2a[1]+"L"+p2b[0]+","+p2b[1]+"Z ";
+					}
+					path.setAttribute("d",cd);
+				}
+			}
+		}
+		return(path);
+	}
+	
+	function getCoordinates(){
+		var crd = d.replace(/M/g,"");
+		crd = crd.replace(/Z/g,"");
+		crd = crd.split("L");
+		for ( var i = 0 ; i < crd.length ; i++ ){
+			crd[i]=crd[i].split(",");
+			crd[i][0]=Number(crd[i][0]);
+			crd[i][1]=Number(crd[i][1]);
+		}
+//		console.log(crd);
+		return ( crd );
+	}
+	
+	return{
+		getCoordinates : getCoordinates,
+		move_to : move_to,
+		line_to : line_to,
+		arc : arc,
+		arc_negative : arc_negative,
+		closePath : closePath,
+		getPath : getPath,
+		getClippedPath : getClippedPath
+	}
+}
+
+
+
+
+
+// This is https://rosettacode.org/wiki/Sutherland-Hodgman_polygon_clipping
+
+        function clip (subjectPolygon, clipPolygon) {
+ 
+            var cp1, cp2, s, e;
+            var inside = function (p) {
+                return (cp2[0]-cp1[0])*(p[1]-cp1[1]) > (cp2[1]-cp1[1])*(p[0]-cp1[0]);
+            };
+            var intersection = function () {
+                var dc = [ cp1[0] - cp2[0], cp1[1] - cp2[1] ],
+                    dp = [ s[0] - e[0], s[1] - e[1] ],
+                    n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0],
+                    n2 = s[0] * e[1] - s[1] * e[0], 
+                    n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
+            	if ( cp1[2] || cp2[2] ){
+	                return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3, true];
+            	} else {
+	                return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3];
+            	}
+            };
+            var outputList = subjectPolygon;
+            cp1 = clipPolygon[clipPolygon.length-1];
+            for (j in clipPolygon) {
+                var cp2 = clipPolygon[j];
+                var inputList = outputList;
+                outputList = [];
+                s = inputList[inputList.length - 1]; //last on the input list
+                for (i in inputList) {
+                    var e = inputList[i];
+                    if (inside(e)) {
+                        if (!inside(s)) {
+                            outputList.push(intersection());
+                        }
+                    	if ( cp1[2] ){
+	                        outputList.push([e[0],e[1],true]);
+                    	} else {
+	                        outputList.push(e);
+                    	}
+                    }
+                    else if (inside(s)) {
+                        outputList.push(intersection());
+                    }
+                    s = e;
+                }
+                cp1 = cp2;
+            }
+            return outputList
+        }
+
+function serializeToString(node) {
+    try {
+        // for Firefox, Chrome, Safari, Opera
+    	var vb = node.getAttribute("viewBox").replace(/ /g,",").split(",");
+    	var w = node.getAttribute("width");
+    	var h = node.getAttribute("height");
+    	var phSize = ( Number(vb[2]) / INCH2PIXELS ) + "in";
+//    	console.log("src:",vb,w,h,phSize);
+    	node.setAttribute("width",phSize);
+    	node.setAttribute("height",phSize);
+    	var svgStr = (new XMLSerializer()).serializeToString(node);
+    	node.setAttribute("width",w);
+    	node.setAttribute("height",h);
+    	return (svgStr);
+    } catch (e) {
+        try {
+            // for IE
+            return node.xml;
+        } catch (e2) {
+            alert("I can not serialize DOM node!");
+        }
+    }
+    return false;
+}
+
+//########################################################
+//# draw_mounting_holes(   - draws the mounting holes of the mask
+//########################################################
+function draw_mounting_holes(cr,grot){
+	cr.push_group();
+	cr.set_operator(cr.OPERATOR_OVER);
+//	cr.set_source_rgba(0, 0, 0, 1);
+	cr.arc(0,-(tri_out_r+(tri_outb_r - tri_out_r)/2.0), tri_mount_hole_r, 0,2*Math.PI,36);
+	cr.paint();
+//	cr.stroke();
+	cr.pop_group_to_source();
+	return(cr);
+}
+
+var tb1,tb2,tb3,inW,outW;
+var upDownBoundaryStem = false;
+var buildMountHoles = true;
+var stemWratio = -1;
+var orderFactor = 1;
+function updateMask(){
+	
+	var fl = Number(tb1.value);
+	var out_r = Number(tb2.value);
+	var in_r = Number(tb3.value);
+	
+	var out_w = Number(outW.value);
+	var in_w = Number(inW.value);
+	
+	if (paramUiUnit < 3){ // diameter mode
+		out_r = out_r / 2.0;
+		in_r = in_r / 2.0;
+	} 
+	
+	
+	if ( document.getElementById("stemB").checked ){
+		upDownBoundaryStem = true;
+	} else {
+		upDownBoundaryStem = false;
+	}
+	
+	if ( document.getElementById("mountH").checked ){
+		buildMountHoles = true;
+	} else {
+		buildMountHoles = false;
+	}
+	
+	if ( document.getElementById("equalizeArea").checked ){
+		equalizeArea = true;
+	} else {
+		equalizeArea = false;
+	}
+	
+	if ( document.getElementById("thirdO").checked ){
+		orderFactor = 3.0;
+	} else {
+		orderFactor = 1.0;
+	}
+	
+	if ( document.getElementById("roundE").checked ){
+		roundEdge = 1;
+	} else {
+		roundEdge = 0;
+	}
+	
+	var stemWselect = document.getElementById("stemW").selectedIndex;
+	stemWratio = Number(document.getElementById("stemW").options[stemWselect].value);
+//	console.log("stemWratio:",stemWratio);
+	
+	var BFselect = document.getElementById("bartinovF").selectedIndex;
+	BAHTINOV_FACTOR = Number(document.getElementById("bartinovF").options[BFselect].value);
+	
+	if (paramUiUnit % 3 == 0){
+		// no change
+	} else if(paramUiUnit % 3 == 1){
+		out_r = out_r * toMm;
+		in_r = in_r * toMm;
+		out_w = out_w * toMm;
+		in_w = in_w * toMm;
+	} else if(paramUiUnit % 3 == 2){
+		fl = fl * toMm;
+		out_r = out_r * toMm;
+		in_r = in_r * toMm;
+		out_w = out_w * toMm;
+		in_w = in_w * toMm;
+	}
+	
+	console.log("out_w:",out_w, "  in_w:",in_w);
+	
+	initParams(fl, out_r, in_r , out_w , in_w );
+	buildMask();
+
+}
+
+var paramUiUnit = 0;
+var toMm = 25.4;
+function changeUnit(){
+//	console.log( "cange unit");
+	var newUnit = document.getElementById("paramUnit").selectedIndex;
+	
+	if ( newUnit % 3 == 0 ){ // mm
+		if ( paramUiUnit % 3 == 1 ){ // f.l.mm
+			tb1.value = Number(tb1.value);
+			tb2.value = Number(tb2.value)*toMm;
+			tb3.value = Number(tb3.value)*toMm;
+			inW.value = Number(inW.value)*toMm;
+			outW.value = Number(outW.value)*toMm;
+		} else if( paramUiUnit % 3 == 2 ){ // in
+			tb1.value = Number(tb1.value)*toMm;
+			tb2.value = Number(tb2.value)*toMm;
+			tb3.value = Number(tb3.value)*toMm;
+			inW.value = Number(inW.value)*toMm;
+			outW.value = Number(outW.value)*toMm;
+		}
+	} else if ( newUnit % 3 == 1 ){ // f.l. mm
+		if ( paramUiUnit % 3 == 0 ){ // mm
+			tb1.value = Number(tb1.value);
+			tb2.value = Number(tb2.value)/toMm;
+			tb3.value = Number(tb3.value)/toMm;
+			inW.value = Number(inW.value)/toMm;
+			outW.value = Number(outW.value)/toMm;
+		} else if( paramUiUnit % 3 == 2 ){ // in
+			tb1.value = Number(tb1.value)*toMm;
+			tb2.value = Number(tb2.value);
+			tb3.value = Number(tb3.value);
+			inW.value = Number(inW.value);
+			outW.value = Number(outW.value);
+		}
+	} else if ( newUnit % 3 == 2 ){ // in
+		if ( paramUiUnit % 3 == 0 ){ // mm
+			tb1.value = Number(tb1.value)/toMm;
+			tb2.value = Number(tb2.value)/toMm;
+			tb3.value = Number(tb3.value)/toMm;
+			inW.value = Number(inW.value)/toMm;
+			outW.value = Number(outW.value)/toMm;
+		} else if( paramUiUnit % 3 == 1 ){ // f.l.mm
+			tb1.value = Number(tb1.value)/toMm;
+			tb2.value = Number(tb2.value);
+			tb3.value = Number(tb3.value);
+			inW.value = Number(inW.value);
+			outW.value = Number(outW.value);
+		}
+	}
+	
+	if ( newUnit >= 3 && paramUiUnit < 3 ){ // Change to radius mode
+		tb2.value = Number(tb2.value)/2.0;
+		tb3.value = Number(tb3.value)/2.0;
+		document.getElementById("pName2").innerHTML="Outer Radius :";
+		document.getElementById("pName3").innerHTML="Inner Radius :";
+	} else if ( newUnit < 3 && paramUiUnit >= 3 ){ // Change to diameter mode
+		tb2.value = Number(tb2.value)*2.0;
+		tb3.value = Number(tb3.value)*2.0;
+		document.getElementById("pName2").innerHTML="Outer Diameter :";
+		document.getElementById("pName3").innerHTML="Inner Diameter :";
+	}
+	
+	paramUiUnit = newUnit;
+}
+
+
+// A function that calculates the boundary line starting point so that the areas of right upper slits and lower slits are equal (06/13/2017)
+// This function uses the Bisection Method to obtain an approximate solution of the nonlinear equation for this matter.
+function getHalfAreaPoint(rInner, rOuter){
+	var theta = getTheta(rInner, rOuter);
+	var point = getL(theta,rInner, rOuter);
+	return ( point );
+}
+
+function getTheta(ri,ro){
+	var tu = Math.PI / 3;
+	var td = 0;
+	var difu,difd,difc;
+	// Bisection Method : assume that it converged in 30 iterations...
+	for ( var i = 0 ; i < 30 ; i++ ){ 
+		var tc = (tu + td)/2;
+		difu = getPointDif(tu , ri , ro );
+		difc = getPointDif(tc , ri , ro );
+		difd = getPointDif(td , ri , ro );
+		
+		if ( difu * difc < 0 ){
+			tu = tu;
+			td = tc;
+		} else {
+			tu = tc;
+			td = td;
+		}
+//		console.log("u,c,d",difu,difc,difd);
+		
+	}
+//	console.log("dif",difc, "  theta:",tc , " : " , tc * 180 / Math.PI , " deg");
+	return ( tc );
+}
+
+function getPointDif(theta,ri,ro){
+	var ans = theta - Math.sin(theta) * Math.cos(theta) + Math.sin(theta) * Math.sin(theta) * Math.tan( 10.0 * Math.PI / 180.0 ) - ( Math.PI / 6.0 ) * ( 1 - ( ri * ri ) / ( ro * ro ) ) ;
+	return ( ans );
+}
+
+function getL(theta,ri,ro){
+	var ans = ro * ( Math.cos(theta) - Math.sin(theta) * Math.tan( 10.0 * Math.PI / 180.0 ) );
+//	console.log( "L:",ans , "  dntW:",ro-ri, "  partPointI:",ans - ri, "  partPointO:",ro - ans );
+	return ( ans );
+}
+
+function handleDownload(){
+	var content = document.getElementById("svgSrc").value;
+	var blob = new Blob([ content ], { "type" : "image/svg+xml " });
+	if (window.navigator.msSaveBlob) { 
+		window.navigator.msSaveBlob(blob, "triBahtinovMask.svg"); 
+//		window.navigator.msSaveOrOpenBlob(blob, "triBahtinovMask.svg");
+	} else {
+		document.getElementById("downloadAnchor").href = window.URL.createObjectURL(blob);
+		document.getElementById("downloadAnchor").click();
+	}
+}
+</script>
+<body>
+<div style="left: 5px; top: 5px; position: absolute;">
+<svg id="tb" width="600" height="600" viewBox="-500,-500,1000,1000">
+</svg>
+</div>
+<div style="right: 5px; top: 5px; position: absolute;">
+<p style="right: 5px; top: -15px; position: absolute;"><a href="./">Home</a></p>
+<h3>Tri-Bahtinov Mask Cover Drawings Generator</h3>
+<p>This is a cover for collimating a reflector telescope using a <br><a href="Tri-Bahtinov.html" target="_blank">Tri-Bahtinov Mask</a> and the K. Evans' <a href="https://github.com/1CM69/Tri-Bahtinov_Grabber" target="_blank">Tri-Bahtinov Grabber program</a>.</p>
+	
+Unit: <select id="paramUnit" onchange="changeUnit()" autocomplete="off">
+<option value="" selected>F.L.:[mm], Diameters:[mm]</option>
+<option value="">F.L.:[mm], Diameters:[in]</option>
+<option value="">F.L.:[in], Diameters:[in]</option>
+<option value="">F.L.:[mm], Radius:[mm]</option>
+<option value="">F.L.:[mm], Radius:[in]</option>
+<option value="">F.L.:[in], Radius:[in]</option>
+</select>
+ <input id="mountH" type="checkbox" checked="true" autocomplete="off" />:Build mount holes
+<br>
+	<table border="0">
+    <tr style="display:none"><td><span id="pName1">Focal Length :</span></td><td><input name="textBox1" id="textBox1" type="text" value="500" autocomplete="off" /></td></tr>
+    <tr><td><span id="pName2">Outer Diameter :</span></td><td><input name="textBox2" id="textBox2" type="text" value="225.425" autocomplete="off" /></td></tr>
+    <tr><td><span id="pName3">Inner Diameter :</span></td><td><input name="textBox3" id="textBox3" type="text" value="73.025" autocomplete="off" /></td></tr>
+    </table>
+<span style="display:none">
+	<input id="stemB" type="checkbox" autocomplete="off" />:Build <a href="https://www.cloudynights.com/topic/536410-a-tri-bahtinov-mask-for-sct-collimation-and-focusing/#entry7920788" target="_blank">boundary stem</a>
+	<input id="equalizeArea" type="checkbox" checked="true" autocomplete="off" />:Equalize Upper &amp; Lower areas<br>
+    
+    
+	<select id="stemW" autocomplete="off">
+	 <option value="-1"   >StemWidth = 0.2362in</option>
+	 <option value="2"    >StemWidth : SlitWidth = 1:2.0</option>
+	 <option value="1.8"  >StemWidth : SlitWidth = 1:1.8</option>
+	 <option value="1.6"  >StemWidth : SlitWidth = 1:1.6</option>
+	 <option value="1.4"  >StemWidth : SlitWidth = 1:1.4</option>
+	 <option value="1.3"  >StemWidth : SlitWidth = 1:1.3</option>
+	 <option value="1.2"  >StemWidth : SlitWidth = 1:1.2</option>
+	 <option value="1.1"  >StemWidth : SlitWidth = 1:1.1</option>
+	 <option value="1" selected >StemWidth : SlitWidth = 1:1</option>
+	 <option value="0.909">StemWidth : SlitWidth = 1.1:1</option>
+	 <option value="0.833">StemWidth : SlitWidth = 1.2:1</option>
+	 <option value="0.769">StemWidth : SlitWidth = 1.3:1</option>
+	 <option value="0.714">StemWidth : SlitWidth = 1.4:1</option>
+	 <option value="0.625">StemWidth : SlitWidth = 1.6:1</option>
+	 <option value="0.556">StemWidth : SlitWidth = 1.8:1</option>
+	 <option value="0.5"  >StemWidth : SlitWidth = 2.0:1</option>
+	</select>    
+    
+    <input id="thirdO" type="checkbox"  autocomplete="off" />:Use <a href="https://www.cloudynights.com/topic/178843-revolutionary-new-way-of-focusing-no-less/page-5#entry2381128" target="_blank">3rd order spectrum</a>
+    <br>
+	<a href="https://www.cloudynights.com/topic/178843-revolutionary-new-way-of-focusing-no-less/#entry2309839" target="_blank">Bartinov Factor</a>:
+	<select id="bartinovF" autocomplete="off">
+	 <option value="100" >100</option>
+	 <option value="110" >110</option>
+	 <option value="120" >120</option>
+	 <option value="130" >130</option>
+	 <option value="140" >140</option>
+	 <option value="150" selected >150</option>
+	 <option value="160" >160</option>
+	 <option value="170" >170</option>
+	 <option value="180" >180</option>
+	 <option value="190" >190</option>
+	 <option value="200" >200</option>
+	 <option value="210" >210</option>
+	 <option value="220" >220</option>
+	 <option value="230" >230</option>
+	 <option value="240" >240</option>
+	 <option value="250" >250</option>
+    </select>
+</span>    
+    <span id="inWt">inW:</span><input name="inW" id="inW" type="text" style="width:50px" value="5.99948" autocomplete="off" />
+    <span id="outWt">outW:</span><input name="outW" id="outW" type="text" style="width:50px" value="11.1125" autocomplete="off" />
+     <input id="roundE" type="checkbox" checked autocomplete="off" style="visibility:hidden"/>
+   
+    <br>
+    <input type="button" value="Draw Tri-Bahtinov Mask" onclick="updateMask();" />
+    <a id="downloadAnchor" href="" download="triBahtinovMask.svg" style="display:none" >hiddenDL</a>
+    <input type="button" value="DOWNLOAD svg" onclick="handleDownload()"/>
+    <hr>
+<h3>SVG Source</h3>
+<p><font size="-1">Download using upper buton or copy following source text and save as<br> [maskName].svg using text editor, and open it by <a href="https://inkscape.org/" target="_blank" >inkscape</a>.</font></p>
+	<textarea rows="10" cols="48" id="svgSrc" >use value</textarea>
+</div>
+</body>
+</html>
